@@ -1,0 +1,298 @@
+.regex-pair {
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 1rem 1rem 1.5rem;
+  border: 0.05rem solid #ccc;
+  position: relative;
+}
+.pair-inputs label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.regex-pair h1 {
+  margin: 0 0 0.3rem;
+  font-size: 1.3rem;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  height: 0.01rem;
+  width: 0.01rem;
+  overflow: hidden;
+}
+.regex-pair h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.regex-pair h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.regex-pair ul {
+  margin: 0;
+  padding: 0;
+}
+.regex-pair li {
+  list-style-type: none;
+  display: inline-block;
+  margin: 0 0 0 1rem;
+  padding: 0;
+}
+.regex-pair li:first-child {
+  margin: 0;
+}
+.regex-pair button {
+  border: none;
+  padding: 0.3rem 0.5rem;
+  min-width: 6.7rem;
+  position: absolute;
+  right: 0;
+  display: none;
+  overflow: hidden;
+}
+.regex-pair:hover button,
+.regex-pair:focus-within button {
+  display: block;
+}
+
+.pair-delete {
+  top: 0.5rem;
+  background: #b00;
+  color: #fff;
+}
+.regex-pair[siblings="none"] .pair-delete {
+  display: none;
+}
+.regex-pair input, .regex-pair textarea {
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0.3rem 0.5rem;
+}
+.regex-pair .pair-inputs {
+  display: grid;
+  grid-template-columns: 1fr 4.2rem 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+}
+.regex-pair label {
+  grid-row-start: 1;
+  grid-row-end: 2;
+  line-height: 1.5rem;
+}
+.regex-pair input,
+.regex-pair textarea {
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+.regex-pair .pair-find {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  align-self: baseline; 
+}
+.regex-pair .pair-modifiers {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  align-self: end; 
+}
+.regex-pair .pair-modifiers--input {
+  align-self: start;
+}
+.regex-pair .pair-replace {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  align-self: baseline; 
+}
+.regex-pair[full-width] .pair-inputs {
+  grid-template-columns: 4.2rem auto 4.2rem;
+  grid-template-rows: auto auto;
+  column-gap: 0.5rem;
+  row-gap: 0.5rem;
+}
+.regex-pair[full-width] .pair-inputs label {
+  text-align: right;
+}
+.regex-pair[full-width] .pair-find--label {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.regex-pair[full-width] .pair-find--input {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.regex-pair[full-width] .pair-modifiers--label {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.regex-pair[full-width] .pair-modifiers--input {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+.regex-pair[full-width] .pair-replace--label {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+.regex-pair[full-width] .pair-replace--input {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+.settings {
+  background: #fff;
+  border: 0.05rem solid #ccc;
+  border-top: none;
+  left: -0.05rem;
+  padding: 0 7rem 1rem 1rem;
+  position: absolute;
+  transition: transform 0.3s ease-in-out;
+  right: -0.05rem;
+  transform: scaleY(0);
+  transform-origin: top;
+  z-index: 10;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+.regex-pair:hover .settings,
+.regex-pair:focus-within .settings {
+  transform: scaleY(1);
+  transform-origin: top;
+  transition: transform 0.3s ease-in-out;
+}
+.regex-pair button.pair-add {
+  z-index: 20;
+  background: transparent;
+  overflow: hidden;
+  padding-left: 2rem;
+}
+.pair-add::after {
+  content: '';
+  position: absolute;
+  background: #0b0;
+  top: 0;
+  right: -2rem;
+  left: 1rem;
+  bottom: 0;
+  z-index: -1;
+}
+.pair-addBefore { top: -0.05rem; }
+.pair-addBefore::after { transform: skewX(45deg); }
+.pair-addAfter { bottom: -0.05rem; }
+.pair-addAfter::after { transform: skewX(-45deg); }
+
+
+.regex-pair details {
+  position: relative;
+  padding: 0 7rem 0 0;
+  margin: 0.5rem 0 0;
+}
+.regex-pair[siblings="none"] .pair-settings {
+  padding: 0;
+}
+.pair-settings {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 2rem;
+  row-gap: 0.5rem;
+  align-items: stretch;
+}
+.pair-settings > * {
+  margin: 0 0 0 2rem;
+  max-width: 100%;
+}
+.pair-settings :first-child {
+  margin: 0;
+  max-width: 16rem;
+  align-self: end;
+}
+.wrapping-label {
+  display: block;
+  text-indent: -1.2rem;
+  padding-left: 1.2rem;
+  position: relative;
+}
+.wrapping-label::after {
+  opacity: 0;
+  content: '';
+  box-shadow: 0 0 0.5rem rgba(175, 200, 255, 0.3),  0 0 0.25rem rgba(175, 200, 255, 0.3) inset;
+  transition: opacity 0.2s ease-in-out;
+  position: absolute;
+  z-index: -1;
+  top: -0.5rem;
+  right: -.5rem;
+  bottom: -0.5rem;
+  left: -0.5rem;
+  display: block;
+  border-radius: 0.3rem;
+  border: 0.05rem dashed #ccc;
+}
+.wrapping-label:focus-within::after {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+@media screen and (max-width: 62rem) {
+  .regex-pair li {
+    margin-left: 0;
+    display: block;
+    padding: 0.5rem 0 0;
+  }
+
+  .regex-pair label {
+    text-align: right;
+  }
+  .regex-pair .pair-modifiers--label {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    align-self: end; 
+  }
+  .regex-pair .pair-inputs {
+    grid-template-columns: 4.2rem auto 4.2rem;
+    grid-template-rows: auto auto;
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
+  }
+  .regex-pair .pair-find--label {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 1;
+    grid-row-end: 2;
+  }
+  .regex-pair .pair-find--label {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 1;
+    grid-row-end: 2;
+  }
+  .regex-pair .pair-find--input {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 2;
+  }
+  .regex-pair .pair-modifiers--input {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3;
+  }
+  .regex-pair .pair-replace--label {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+  }
+  .regex-pair .pair-replace--input {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+  }
+}

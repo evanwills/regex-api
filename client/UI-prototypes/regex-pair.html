@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+		<title>Regex pair demo</title>
+		<link rel="stylesheet" href="regex-pair.css" type="text/css" />
+	</head>
+	<body>
+		<div class="regex-pair" layout="standard" siblings="none">
+			<h1>Pair 1</h1>
+			<div class="pair-inputs">
+				<label class="pair-find pair-find--label">Find:</label>
+				<input type="text" focus value="" id="pair1-find" class="pair-find pair-find--input" placeholder="Regex pattern" />
+
+				<label class="pair-modifiers pair-modifiers--label">Modifiers</label>
+				<input type="text" value="" size="5" pattern="^[a-zA-Z]+$" id="pair1-modifiers" class="pair-modifiers pair-modifiers--input" placeholder="e.g. i" />
+
+				<label class="pair-replace pair-replace--label">Replace</label>
+				<input type="text" value="" id="pair1-replace" class="pair-replace pair-replace--input" placeholder="replacement pattern" />
+			</div>
+
+			<div class="settings" role="group" aria-labelledby="pair1-settings-legend">
+				<h2 id="pair1-settings-legend">Settings</h2>
+				<div class="pair-settings" role="group" aria-labelledby="pair1-settings-legend">
+					<label class="pair-whiteSpace wrapping-label">
+						<input type="checkbox" value="true" id="pair1-whiteSpace" />
+						Transform white space escape sequences in replace
+					</label>
+
+					<div class="pair-delimiters">
+						<h3 id="pair1-delimiters--label">Delimiters</h3>
+						<ul role="group" aria-labelledby="pair1-delimiters--label">
+							<li>
+								<label>Open</label>
+								<input type="text" value="" id="pair1-openDelim" class="pair-openDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+							<li>
+								<label>Close</label>
+								<input type="text" value="" id="pair1-closeDelim" class="pair-closeDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+						</ul>
+					</div>
+
+					<div class="pair-layout">
+						<h3 id="pair1-layout-legend">Layout</h3>
+						<ul role="group" aria-labelledby="pair1-layout-legend">
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="fullWidth" id="pair1-fullWidth" value="full-width" />
+								Full Width
+							</label></li>
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="multiLine" id="pair1-multiLine" value="multi-line" />
+								Multi line
+							</label></li>
+						</ul>
+					</div>
+
+					<button id="pair1-delete" class="pair-delete">Delete this pair</button>
+					<button id="pair1-addAfter" class="pair-add pair-addAfter">Add pair after</button>
+				</div>
+			</div>
+			<button id="pair1-addBefore" class="pair-add pair-addBefore">Add pair before</button>
+		</div>
+
+		<div class="regex-pair" full-width siblings="many">
+			<h1>Pair 2</h1>
+			<div class="pair-inputs">
+				<label class="pair-find pair-find--label">Find:</label>
+				<input type="text" value="" id="pair2-find" class="pair-find pair-find--input" placeholder="Regex pattern" />
+
+				<label class="pair-modifiers pair-modifiers--label">Modifiers</label>
+				<input type="text" value="" size="5" pattern="^[a-zA-Z]+$" id="pair2-modifiers" class="pair-modifiers pair-modifiers--input" placeholder="e.g. i" />
+
+				<label class="pair-replace pair-replace--label">Replace</label>
+				<input type="text" value="" id="pair2-replace" class="pair-replace pair-replace--input" placeholder="replacement pattern" />
+			</div>
+
+			<div class="settings" role="group" aria-labelledby="settings-label">
+				<h2 id="settings-label">Settings</h2>
+				<div class="pair-settings" role="group" aria-labelledby="pair2-settings-legend">
+					<label class="pair-whiteSpace wrapping-label">
+						<input type="checkbox" value="true" id="pair2-whiteSpace" />
+						Transform white space escape sequences in replace
+					</label>
+
+					<div class="pair-delimiters">
+						<h3 id="pair2-delimiters--label">Delimiters</h3>
+						<ul role="group" aria-labelledby="pair2-delimiters--label">
+							<li>
+								<label>Open</label>
+								<input type="text" value="" id="pair2-openDelim" class="pair-openDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+							<li>
+								<label>Close</label>
+								<input type="text" value="" id="pair2-closeDelim" class="pair-closeDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+						</ul>
+					</div>
+
+					<div class="pair-layout">
+						<h3 id="pair2-layout-legend">Layout</h3>
+						<ul role="group" aria-labelledby="pair2-layout-legend">
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="fullWidth" id="pair2-fullWidth" value="full-width" />
+								Full Width
+							</label></li>
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="multiLine" id="pair2-multiLine" value="multi-line" />
+								Multi line
+							</label></li>
+						</ul>
+					</div>
+				</div>
+
+				<button id="pair2-addAfter" class="pair-add pair-addAfter">Add pair after</button>
+
+				<button id="pair2-delete" class="pair-delete">Delete this pair</button>
+			</div>
+			<button id="pair2-addBefore" class="pair-add pair-addBefore">Add pair before</button>
+		</div>
+
+		<div class="regex-pair" siblings="many">
+			<h1>Pair 3</h1>
+			<div class="pair-inputs">
+				<label class="pair-find pair-find--label">Find:</label>
+				<textarea id="pair3-find" class="pair-find pair-find--input" placeholder="Regex pattern"></textarea>
+
+				<label class="pair-modifiers pair-modifiers--label">Modifiers</label>
+				<input type="text" value="" size="5" pattern="^[a-zA-Z]+$" id="pair3-modifiers" class="pair-modifiers pair-modifiers--input" placeholder="e.g. i" />
+
+				<label class="pair-replace pair-replace--label">Replace</label>
+				<textarea id="pair3-replace" class="pair-replace pair-replace--input" placeholder="replacement pattern"></textarea>
+			</div>
+
+			<div class="settings" role="group" aria-labelledby="settings-label">
+				<h2 id="settings-label">Settings</h2>
+				<div class="pair-settings" role="group" aria-labelledby="pair3-settings-legend">
+					<label class="pair-whiteSpace wrapping-label">
+						<input type="checkbox" value="true" id="pair3-whiteSpace" />
+						Transform white space escape sequences in replace
+					</label>
+
+					<div class="pair-delimiters">
+						<h3 id="pair3-delimiters--label">Delimiters</h3>
+						<ul role="group" aria-labelledby="pair3-delimiters--label">
+							<li>
+								<label>Open</label>
+								<input type="text" value="" id="pair3-openDelim" class="pair-openDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+							<li>
+								<label>Close</label>
+								<input type="text" value="" id="pair3-closeDelim" class="pair-closeDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+						</ul>
+					</div>
+
+					<div class="pair-layout">
+						<h3 id="pair3-layout-legend">Layout</h3>
+						<ul role="group" aria-labelledby="pair3-layout-legend">
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="fullWidth" id="pair3-fullWidth" value="full-width" />
+								Full Width
+							</label></li>
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="multiLine" id="pair3-multiLine" value="multi-line" />
+								Multi line
+							</label></li>
+						</ul>
+					</div>
+				</div>
+
+				<button id="pair3-addAfter" class="pair-add pair-addAfter">Add pair after</button>
+
+				<button id="pair3-delete" class="pair-delete">Delete this pair</button>
+			</div>
+			<button id="pair3-addBefore" class="pair-add pair-addBefore">Add pair before</button>
+		</div>
+
+		<div class="regex-pair" full-width siblings="many">
+			<h1>Pair 4</h1>
+			<div class="pair-inputs">
+				<label class="pair-find pair-find--label">Find:</label>
+				<textarea id="pair4-find" class="pair-find pair-find--input" placeholder="Regex pattern"></textarea>
+
+				<label class="pair-modifiers pair-modifiers--label">Modifiers</label>
+				<input type="text" value="" size="5" pattern="^[a-zA-Z]+$" id="pair4-modifiers" class="pair-modifiers pair-modifiers--input" placeholder="e.g. i" />
+
+				<label class="pair-replace pair-replace--label">Replace</label>
+				<textarea id="pair4-replace" class="pair-replace pair-replace--input" placeholder="replacement pattern"></textarea>
+			</div>
+
+			<div class="settings" role="group" aria-labelledby="settings-label">
+				<h2 id="settings-label">Settings</h2>
+				<div class="pair-settings" role="group" aria-labelledby="pair4-settings-legend">
+					<label class="pair-whiteSpace wrapping-label">
+						<input type="checkbox" value="true" id="pair4-whiteSpace" />
+						Transform white space escape sequences in replace
+					</label>
+
+					<div class="pair-delimiters">
+						<h3 id="pair4-delimiters--label">Delimiters</h3>
+						<ul role="group" aria-labelledby="pair4-delimiters--label">
+							<li>
+								<label>Open</label>
+								<input type="text" value="" id="pair4-openDelim" class="pair-openDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+							<li>
+								<label>Close</label>
+								<input type="text" value="" id="pair4-closeDelim" class="pair-closeDelim" maxchars="1" size="1" pattern="^[^\w\d]$" value="" />
+							</li>
+						</ul>
+					</div>
+
+					<div class="pair-layout">
+						<h3 id="pair4-layout-legend">Layout</h3>
+						<ul role="group" aria-labelledby="pair4-layout-legend">
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="fullWidth" id="pair4-fullWidth" value="full-width" />
+								Full Width
+							</label></li>
+							<li><label class="pair-layout--control wrapping-label">
+								<input type="checkbox" class="multiLine" id="pair4-multiLine" value="multi-line" />
+								Multi line
+							</label></li>
+						</ul>
+					</div>
+				</div>
+
+				<button id="pair4-addAfter" class="pair-add pair-addAfter">Add pair after</button>
+
+				<button id="pair4-delete" class="pair-delete">Delete this pair</button>
+			</div>
+			<button id="pair4-addBefore" class="pair-add pair-addBefore">Add pair before</button>
+		</div>
+
+		<script type="text/javascript">
+(function() {
+  const inFocus = document.getElementById('pair1-find')
+	inFocus.focus()
+})();
+		</script>
+
+	</body>
+</html>
