@@ -24,6 +24,8 @@ require_once __DIR__.'regex-api.class.php';
 
 Regex::setMaxWhole($maxWholeMatch);
 Regex::setMaxPart($maxPartMatch);
+// Regex::setAllowedDelimiters();
+// Regex::setAllowedModifiers();
 RegexAPI::setMaxRegexes($maxRegexes);
 RegexAPI::setMaxSamples($maxSamples);
 RegexAPI::setMaxSampleLength($maxSampleLength);
@@ -31,26 +33,20 @@ RegexAPI::setMaxSampleLength($maxSampleLength);
 $data = array_key_exists('data', $_POST) ? $_POST['data'] : false;
 
 if ($data === false) {
-    $config = array_key_exists('config', $_POST) ? true : false;
+    $config = array_key_exists('getConfig', $_POST) ? true : false;
     if ($config === true) {
-        $output = array(
-            'ok' => true,
-            'code' => 201,
-            'content' => RegexAPI::getConfig(),
-            'message' => 'data object was not supplied',
-            'hasTiming' => false
-        );
-        
+        echo RegexAPI::getConfig();
     } else {
-        $output = array(
-            'ok' => false,
-            'code' => 200,
-            'content' => array(''),
-            'message' => 'data object was not supplied',
-            'hasTiming' => false
+        echo json_encode(
+            array(
+                'ok' => false,
+                'code' => 200,
+                'content' => array(''),
+                'message' => 'data object was not supplied',
+                'hasTiming' => false
+            )
         );
     }
-    echo json_encode($output);
     exit;
 }
 

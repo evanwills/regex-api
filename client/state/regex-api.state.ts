@@ -10,7 +10,10 @@ const defaultState = {
   regex: {
     chainRegexes: true,
     engine: {
-      allowedDelimiters: [],
+      allowedDelimiters: {
+        single: [],
+        paired: []
+      },
       allowedModifiers: [],
       engineName: 'ecmascript',
       isLocal: true,

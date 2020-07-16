@@ -30,7 +30,7 @@ export interface IapiResponse {
   // Code for response export interface success/error export interface
   code: number,
   // List of results for test of each supplied regex
-  content?: [TestResponse | MatchResponse | ReplaceResponse],
+  content?: [TestResponse | MatchResponse | ReplaceResponse] | EngineConfig,
   // Human readable description of success/error export interface
   message: string
 }
@@ -123,6 +123,17 @@ export interface APIinvalidRequestResponse extends IapiResponse {
   code: number,
   // Error message
   // content: [],
+  // Human readable description of success/error export interface
+  message: string
+}
+
+export interface APIconfigResponse extends IapiResponse {
+  // Whether or not the request was OK or not
+  ok: true,
+  // Code for response export interface success/error export interface
+  code: number,
+  // Engine config parameters
+  content: EngineConfig,
   // Human readable description of success/error export interface
   message: string
 }
@@ -224,6 +235,20 @@ export interface TransformedSample {
 //  END:  Response sub-export interfaces
 // - - - - - - - - - - - - - - - - - - - - - - - -
 
+export interface EngineConfig {
+  modifiers: [string],
+  delimiters: {
+    single: [string],
+    paired: [Delimiters]
+  },
+  maxPart: Number,
+  maxWhole: Number,
+  maxRegexes?: Number,
+  maxSamples?: Number,
+  maxSampleLength?: Number,
+  maxTotalSampleLength?: Number,
+  maxReturnSampleLength?: Number
+}
 
 //  END:  Response export interfaces
 // -----------------------------------------------

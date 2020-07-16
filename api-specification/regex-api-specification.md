@@ -10,7 +10,7 @@ processors.
 >      wants admin to test their validation to ensure the outcome the
 >      administrator expects.
 
-The API operates in three modes:
+The API operates in four modes:
 
 * __`test`__ Which only tests to see if the regular expression is
              valid.
@@ -20,7 +20,10 @@ The API operates in three modes:
              the client (see [Match](#match) below for more detail)
 * __`replace`__ Where the regular a list of regular expression valid
              find/replace pairs are applied (in the supplied order)
-             valid to all the strings supplied with the request,
+             valid to all the strings supplied with the request
+* __`getConfig`__ Get config defaults for engine (to help with client 
+             side validation applied before sending the regex to the 
+             server/API)
 
 ## Handling regex errors
 

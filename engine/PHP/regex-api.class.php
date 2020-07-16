@@ -396,17 +396,25 @@ class RegexAPI
      */
     static public function getConfig()
     {
-        return array(
-            'modifiers' => Regex::getAllowedModifiers(),
-            'delimiters' => Regex::getAllowedModifiers(),
-            // 'maxRegexes' => self::$_maxRegexes,
-            // 'maxSamples' => self::$_maxSamples,
-            // 'maxSampleLength' => self::$_maxSampleLength,
-            // 'maxTotalSampleLength' => self::$_maxTotalSampleLength,
-            // 'maxReturnSampleLength' => self::$_maxReturnSampleLength,
-            'maxPart' => Regex::getMaxPart(),
-            'maxWhole' => Regex::getMaxWhole()
+        $output = array(
+            'ok' => true,
+            'code' => 1,
+            'content' => array(
+                'modifiers' => Regex::getAllowedModifiers(),
+                'delimiters' => Regex::getAllowedModifiers(),
+                // 'maxRegexes' => self::$_maxRegexes,
+                // 'maxSamples' => self::$_maxSamples,
+                // 'maxSampleLength' => self::$_maxSampleLength,
+                // 'maxTotalSampleLength' => self::$_maxTotalSampleLength,
+                // 'maxReturnSampleLength' => self::$_maxReturnSampleLength,
+                'maxPart' => Regex::getMaxPart(),
+                'maxWhole' => Regex::getMaxWhole()
+            ),
+            'message' => '',
+            'hasTiming' => false
         );
+
+        return json_encode($output);
     }
 
     /**

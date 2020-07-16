@@ -146,6 +146,13 @@ type APIreplaceResponse implements IapiResponse {
   hasTiming: Boolean
 }
 
+type APIconfigResponse implements IapiResponse {
+  ok: true,
+  code: Number,
+  content: engineConfig,
+  message: string
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - -
 # START: Response sub-types
 
@@ -205,6 +212,21 @@ type TransformedSample {
   duration: Number
 }
 
+type EngineConfig {
+  modifiers: [String]!,
+  delimiters: {
+    single: [String]!,
+    paired: [Delimiters]!
+  }!,
+  maxPart: Number,
+  maxWhole: Number,
+  maxRegexes: Number,
+  maxSamples: Number,
+  maxSampleLength: Number,
+  maxTotalSampleLength: Number,
+  maxReturnSampleLength: Number
+}
+
 #  END:  Response sub-types
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -216,7 +238,9 @@ type TransformedSample {
 # ===============================================
 # START: Unions
 
-union ResponseBody = TestResponse | MatchResponse | ReplaceResponse
+union RegexResponses = TestResponse | MatchResponse | ReplaceResponse
+
+union ResponseBody = [RegexResponses] | EngineConfig
 
 #  END:  Unions
 # ===============================================
