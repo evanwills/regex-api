@@ -14,6 +14,7 @@
  */
 
 require_once __DIR__.'/regex.class.php';
+require_once __DIR__.'/regex-api-config.class.php';
 
 /**
  * Handle user supplied request data
@@ -26,35 +27,10 @@ require_once __DIR__.'/regex.class.php';
  */
 class RegexAPI
 {
-    /**
-     * The maximum number of regular expressions allowed to be
-     * processed per request
-     *
-     * @var integer
-     */
-    static private $_maxRegexes = 100;
+    // ==========================================
+    // START: Object properties
 
-    /**
-     * The maximum number of sample strings allowed to be
-     * processed per request
-     *
-     * @var integer
-     */
-    static private $_maxSamples = 200000;
-
-    /**
-     * The maximum number characters allowed per sample
-     *
-     * @var integer
-     */
-    static private $_maxSampleLength = 1000000;
-
-    /**
-     * The maximum total number characters for all samples combined
-     *
-     * @var integer
-     */
-    static private $_maxTotalSampleLength = 1000000;
+    private $_config = null;
 
     /**
      * List of regex objects for testing or transforming samples
@@ -112,36 +88,40 @@ class RegexAPI
      */
     private $_errorMessage = '';
 
-    /**
-     * When returning match results it's useful to show what the
-     * sample the match was taken from looked like. However There's
-     * no real need to send the whole sample back to the user when
-     * they already have it on their machine.
-     *
-     * This tells PHP how much of the sample to return with the response.
-     *
-     * @var integer
-     */
-    private $_maxReturnSampleLength = 300;
+
+    //  END:  Object properties
+    // ==========================================
+    // START: Constructor
+
 
     /**
      * RegexAPI constructor
      *
-     * @param string $json JSON received from $_GET or $_POST request
+     * @param string         $json   JSON received from $_GET or
+     *                               $_POST request
+     * @param RegexAPIconfig $config Config settings for the API
      */
-    public function __construct(string $json)
+    public function __construct(string $json, RegexAPIconfig $config)
     {
+        $this->_config = $config;
         $json = trim($json);
+
         if ($json === '') {
             $this->_errorCode = 201;
             $this->_errorMessage = 'JSON cannot be an empty string';
+            return;
+        } elseif (strlen($json) > $config->get('limit.maxLength.totalRequest')) {
+            $this->_errorCode = 202;
+            $this->_errorMessage = 'JSON length exceded the maximum '.
+                'number of characters ('.
+                $config->get('limit.maxLength.totalRequest').')';
             return;
         }
 
         try {
             $data = json_decode($json, true);
         } catch (Exception $e) {
-            $this->_errorCode = 202;
+            $this->_errorCode = 203;
             $this->_errorMessage = 'Invalid JSON: '.$e->getMessage();
             return;
         }
@@ -186,16 +166,17 @@ class RegexAPI
                 'regular expressions. '.
                 'What\'s the point of this request?';
             return;
-        } elseif (count($data['regexes']) > self::$_maxRegexes) {
+        } elseif (count($data['regexes']) > $config->get('limit.count.regex')) {
             $this->_errorCode = 113;
             $this->_errorMessage = 'Request data.regexes contains '.
                 'too many regular expressions. '.
-                'Naughty! Naughty! We only allow '.self::$_maxRegexes.
+                'Naughty! Naughty! We only allow '.
+                $config->get('limit.count.regex').
                 '. Received '.count($data['regexes']);
             return;
         } else {
-            foreach ($data['regexes'] as $value) {
-                $tmp = $this->$func($value);
+            foreach ($data['regexes'] as $regex) {
+                $tmp = $this->$func($regex);
                 if ($tmp === false) {
                     return;
                 } else {
@@ -222,11 +203,12 @@ class RegexAPI
                     'contains no sample strings. '.
                     'You must provide at least one empty string';
                 return;
-            } elseif (count($data['samplestrings']) > self::$_maxSamples) {
+            } elseif (count($data['samplestrings']) > $config->get('limit.count.sample')) {
                 $this->_errorCode = 113;
                 $this->_errorMessage = 'Request data.samplestrings '.
                     'contains too many sample strings. '.
-                    'Naughty! Naughty! We only allow '.self::$_maxSamples.
+                    'Naughty! Naughty! We only allow '.
+                    $config->get('limit.count.sample').
                     '. Received '.count($data['samplestrings']);
                 return;
             } else {
@@ -234,20 +216,22 @@ class RegexAPI
                 foreach ($data['samplestrings'] as $sample) {
                     $len = strlen($sample);
                     $total += $len;
-                    if (strlen($sample) > self::$_maxSampleLength) {
+                    if (strlen($sample) > $config->get('limit.maxLength.singleSample')) {
                         $this->_errorCode = 114;
                         $this->_errorMessage = 'Request data.samplestrings '.
                             'contains a sample with too many characters. '.
-                            'We only allow '.self::$_maxSampleLength.
+                            'We only allow '.
+                            $config->get('limit.maxLength.singleSample').
                             'characters per sample. '.
                             'Received '.count($data['samplestrings']);
                         return;
-                    } elseif ($total > self::$_maxTotalSampleLength) {
+                    } elseif ($total > $config->get('limit.maxLength.totalSample')) {
                         $this->_errorCode = 115;
                         $this->_errorMessage = 'The cumulative '.
                             'character count of data.samplestrings ('.
                             $total.') excedes the maximum cumulative '.
-                            'character count ('.self::$_maxTotalSampleLength.
+                            'character count ('.
+                            $config->getConfig('limit.maxLength.totalSample').
                             ') this instance of RegexAPI will process';
                         return;
                     }
@@ -277,6 +261,12 @@ class RegexAPI
             }
         }
     }
+
+
+    //  END:  Constructor
+    // ==========================================
+    // START: public API methods
+
 
     /**
      * Process regular expressions and strings
@@ -389,112 +379,140 @@ class RegexAPI
         return $output;
     }
 
+    //  END:  public API methods
+    // ==========================================
+    // START: public (static) config methods
+
+
     /**
      * Get basic config info about this regex engine
      *
      * @return array
      */
-    static public function getConfig()
+    public function getConfig()
     {
-        $output = array(
-            'ok' => true,
-            'code' => 1,
-            'content' => array(
-                'modifiers' => Regex::getAllowedModifiers(),
-                'delimiters' => Regex::getAllowedModifiers(),
-                // 'maxRegexes' => self::$_maxRegexes,
-                // 'maxSamples' => self::$_maxSamples,
-                // 'maxSampleLength' => self::$_maxSampleLength,
-                // 'maxTotalSampleLength' => self::$_maxTotalSampleLength,
-                // 'maxReturnSampleLength' => self::$_maxReturnSampleLength,
-                'maxPart' => Regex::getMaxPart(),
-                'maxWhole' => Regex::getMaxWhole()
-            ),
-            'message' => '',
-            'hasTiming' => false
-        );
-
-        return json_encode($output);
+        return json_encode($this->_config->getConfig());
     }
 
+    //  END:  public (static) config methods
+    // ==========================================
+    // START: private static config helper methods
+
     /**
-     * Set the maximum length of the sub-pattern match
+     * Test whether a given character is valid to use as either a
+     * line end character or a split character
      *
-     * @param integer $input Maximum number of characters subpattern
-     *                       match can be before being truncated
+     * @param string $char Character to be tested
+     * @param string $key  Name of the property being tested
      *
      * @return boolean
      */
-    static public function setMaxRegexes(int $input)
+    static private function _invalidateChar($char, $key)
     {
-        if ($input < 1) {
-            throw new Exception(
-                'Regex::setMaxRegexes() expects only parameter to '.
-                'be an integer greater than 1. '.$input.' given.'
-            );
+        $len = strlen($char);
+
+        if ($len > 4 || $len <= 0) {
+            // A minimum of 1 character and maximum of four
+            // characters is allowed
+            return false;
+        } elseif ($key === 'normaliseLineEnd') {
+            $ends = array('n', 'r', 'R', 'f');
+            $chars = str_split($char, 2);
+
+            for ($a = 0; $a < count($chars); $a += 1) {
+                if (strlen($chars[$a]) !== 2) {
+                    return false;
+                }
+
+                if (substr($chars[$a], 0, 1) !== '\\'
+                    || !in_array(substr($chars[$a], 1, 1), $ends)
+                ) {
+                    return false;
+                }
+            }
         }
 
-        self::$_maxRegexes = $input;
+        return true;
     }
 
     /**
-     * Set the maximum length of the sub-pattern match
+     * Does the actual work of setting API UI defaults
      *
-     * @param integer $input Maximum number of characters subpattern
-     *                       match can be before being truncated
+     * @param array        $newDefaults         Array of default values to be
+     *                                          set
+     * @param string,false $parentKey           Key from parent array
+     * @param string,false $grandParentKey      Key from grand parent array
+     * @param string,false $greatGrandParentKey Key from great grand parent array
      *
-     * @return boolean
+     * @return array,true
      */
-    static public function setMaxSamples(int $input)
-    {
-        if ($input < 1) {
-            throw new Exception(
-                'Regex::setMaxSamples() expects only parameter to '.
-                'be an integer greater than 1. '.$input.' given.'
-            );
+    static private function _setDefaultsMulti(
+        $newDefaults,
+        $parentKey = false,
+        $grandParentKey = false,
+        $greatGrandParentKey = false
+    ) {
+        $output = array();
+        $args = array();
+
+        if ($parentKey !== false) {
+            $args[] = $parentKey;
+            if ($grandParentKey !== false) {
+                $args[] = $grandParentKey;
+                if ($greatGrandParentKey !== false) {
+                    $args[] = $greatGrandParentKey;
+                }
+            }
         }
 
-        self::$_maxSamples = $input;
+        foreach ($newDefaults as $key => $value) {
+            $tmp = array_merge(
+                array($value),
+                array($key), // will become parent key
+                $args
+            );
+
+            if (!is_array($value)) {
+                try {
+                    call_user_func_array(
+                        'self::setDefault',
+                        $tmp
+                    );
+                } catch (Exception $e) {
+                    $output[] = $e->getMessage();
+                }
+            } else {
+                $output = array_merge(
+                    $output,
+                    call_user_func_array(
+                        'self::_setDefaultsMulti',
+                        $tmp
+                    )
+                );
+            }
+        }
+
+        return $output;
     }
 
     /**
-     * Set the maximum length of the sub-pattern match
+     * Test if two values are the same type.
      *
-     * @param integer $input Maximum number of characters subpattern
-     *                       match can be before being truncated
+     * @param string,integer,boolean $val1 First value to be compared
+     * @param string,integer,boolean $val2 Second value to be compared
      *
-     * @return boolean
+     * @return string Empty if both values are the same type.
+     *                Error message otherwise.
      */
-    static public function setMaxSampleLength(int $input)
+    static private function _isSameType($val1, $val2)
     {
-        if ($input < 1) {
-            throw new Exception(
-                'Regex::setMaxSampleLength() expects only parameter '.
-                'to be an integer greater than 100. '.$input.' given.'
-            );
+        if (gettype($val1) === gettype($val2)) {
+            return '';
+        } else {
+            return 'New default value is invalid. Expecting '.
+                gettype($val1). ' found '.
+                gettype($val2);
         }
-
-        self::$_maxSampleLength = $input;
-    }
-
-    /**
-     * Set the maximum length of the sub-pattern match
-     *
-     * @param integer $input Maximum number of characters subpattern
-     *                       match can be before being truncated
-     *
-     * @return boolean
-     */
-    static public function setMaxTotalSampleLength(int $input)
-    {
-        if ($input < 1) {
-            throw new Exception(
-                'Regex::setMaxSampleLength() expects only parameter '.
-                'to be an integer greater than 100. '.$input.' given.'
-            );
-        }
-
-        self::$_maxTotalSampleLength = $input;
     }
 
     /**
@@ -670,11 +688,11 @@ class RegexAPI
             ) {
                 $this->_errorCode = 147;
                 $this->_errorMessage = 'Request data.matchConfig.maxSubMatchLen '.
-                    'must be an integer between 10 & '.Regex::getMaxPart().'. '.
+                    'must be an integer between 10 & '.Regex::getMaxCaptured().'. '.
                     gettype($config['maxSubMatchLen']).' given.';
                 return false;
             } else {
-                Regex::setMaxPart($config['maxSubMatchLen']);
+                Regex::setMaxCaptured($config['maxSubMatchLen']);
             }
 
             if (!array_key_exists('maxReturnSampleLen', $config)) {
@@ -695,7 +713,7 @@ class RegexAPI
                 $this->_errorCode = 147;
                 $this->_errorMessage = 'Request data.matchConfig.'.
                     'maxReturnSampleLen must be an integer between '.
-                    '10 & '.Regex::getMaxPart().'. '.
+                    '10 & '.Regex::getMaxCaptured().'. '.
                     gettype($config['maxReturnSampleLen']).' given.';
                 return false;
             } else {
@@ -705,3 +723,4 @@ class RegexAPI
         return true;
     }
 }
+

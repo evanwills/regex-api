@@ -14,7 +14,8 @@
  */
 
 /**
- * Handle doing preg stuff for a single regular expression
+ * Handle doing preg stuff for a single regular expression applied
+ * to a single string
  *
  * @category RegexAPI
  * @package  RegexAPI
@@ -52,7 +53,7 @@ class Regex
      *
      * @var integer
      */
-    static private $_maxPart = 300;
+    static private $_maxCaptured = 300;
 
     static private $_allowedModifiers = array(
         'i', 'm', 's', 'x',
@@ -163,6 +164,8 @@ class Regex
         if (!$this->_validateModifiers($modifiers)) {
             $this->_isValid = false;
         }
+
+        $this->_id = $id;
 
         if (strlen($find) > self::HARD_MAX || strlen($find) < 1) {
             throw new Exception(
@@ -335,16 +338,16 @@ class Regex
      *
      * @return boolean
      */
-    static public function setMaxPart(int $input)
+    static public function setMaxCaptured(int $input)
     {
         if ($input < 10 || $input > self::HARD_MAX) {
             throw new Exception(
-                'Regex::setMaxPart() expects only parameter to be an integer '.
+                'Regex::setMaxCaptured() expects only parameter to be an integer '.
                 'greater than 10 and less than '.self::HARD_MAX.'. '.$input.' given.'
             );
         }
 
-        self::$_maxPart = $input;
+        self::$_maxCaptured = $input;
     }
 
     /**
@@ -362,21 +365,21 @@ class Regex
      *
      * @return integer
      */
-    static public function getMaxPart()
+    static public function getMaxCaptured()
     {
-        return self::$_maxPart;
+        return self::$_maxCaptured;
     }
 
     /**
      * Set the modifiers allowed by this server
-     * 
-     * Allowes the server/API admin to reduce the allowed modifiers 
+     *
+     * Allowes the server/API admin to reduce the allowed modifiers
      * to whatever they feel is appropriate
-     * 
+     *
      * NOTE: Invalid modifiers will be silently ignored
      *
      * @param string $modifiers PCRE modifiers allowed by this server
-     * 
+     *
      * @return array the final list of modifiers
      */
     static public function setAllowedModifiers(string $modifiers)
@@ -388,7 +391,7 @@ class Regex
         $_modifiers = str_split($modifiers);
         $output = array();
         for ($a = 0; $a < count($modifiers); $a += 1) {
-            if (in_array($_modifiers[$a], $allowedModifiers) 
+            if (in_array($_modifiers[$a], $allowedModifiers)
                 && !in_array($_modifiers[$a], $output)
             ) {
                     $output[] = $_modifiers[$a];
@@ -412,10 +415,10 @@ class Regex
      * Set the delimiters this server/API will accept as PCRE delimiters
      *
      * NOTE: Invalid delimiters will be silently ignored
-     * 
-     * @param string $delimiters Characters this server/API accepts 
+     *
+     * @param string $delimiters Characters this server/API accepts
      *                           as PCRE delimiters
-     * 
+     *
      * @return array,false FALSE if no valid delimiters were provided
      */
     static public function setAllowedDelimiters(string $delimiters)
@@ -439,7 +442,7 @@ class Regex
         $outputD = array();
         $outputP = array();
         $tmp = array();
-        
+
         for ($a = 0; $a < count($_delimiters); $a += 1) {
             $delim = $_delimiters[$a];
             if (in_array($delim, $allowedDelimiters)
@@ -454,7 +457,7 @@ class Regex
                 $outputP[] = $allowedPairedDelimiters[$delim];
             }
         }
-        
+
         if (empty($outputD) && empty($outputP)) {
             return false;
         } else {
@@ -462,14 +465,14 @@ class Regex
             self::$_allowedDelimiters = $outputD;
 
             return array(
-                'single' => self::$_allowedDelimiters, 
+                'single' => self::$_allowedDelimiters,
                 'paired' => self::$_allowedPairedDelimiters
             );
         }
     }
 
     /**
-     * Get lists of single and paired delimiters allowed by this 
+     * Get lists of single and paired delimiters allowed by this
      * server/API
      *
      * @return array
@@ -477,7 +480,7 @@ class Regex
     static public function getAllowedDelimiters()
     {
         return array(
-            'single' => self::$_allowedDelimiters, 
+            'single' => self::$_allowedDelimiters,
             'paired' => self::$_allowedPairedDelimiters
         );
     }
@@ -506,8 +509,8 @@ class Regex
      */
     private function _truncatePart(string $input)
     {
-        if (strlen($input) > self::$_maxPart) {
-            return substr($input, 0, self::$_maxPart);
+        if (strlen($input) > self::$_maxCaptured) {
+            return substr($input, 0, self::$_maxCaptured);
         }
         return $input;
     }
@@ -553,7 +556,7 @@ class Regex
     {
         if (!array_key_exists('open', $delimiters)) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 '"open" key is missing.'
             );
@@ -561,14 +564,14 @@ class Regex
             || strlen($delimiters['open']) !== 1
         ) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 'Both containing only one non-alphanumeric character. '.
                 '"open" is neither a string nor a single character.'
             );
         } elseif (!array_key_exists('close', $delimiters)) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 '"close" key is missing.'
             );
@@ -576,30 +579,30 @@ class Regex
             || strlen($delimiters['close']) !== 1
         ) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 'Both containing only one non-alphanumeric character. '.
                 '"close" is neither a string nor a single character.'
             );
-        } elseif (!$this->_delimiterIsAllowed($delimiters['open'])) {
+        } elseif (!self::delimiterIsAllowed($delimiters['open'])) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 'Both containing only one non-alphanumeric character '.
                 'allowed by this server/API. "open" does not match '.
                 'any of the allowed delimiters for this server/API. '.
                 'Allowed delimiters are: '.
-                $this->_getAllowedDelimitersForError()
+                self::getAllowedDelimitersForError()
             );
-        } elseif (!$this->_delimiterIsAllowed($delimiters['close'])) {
+        } elseif (!self::delimiterIsAllowed($delimiters['close'])) {
             throw new Exception(
-                'Regex constructor expects third parameter $delimter '.
+                'Regex constructor expects third parameter $delimters '.
                 'to be an array with both an "open" and "close" key. '.
                 'Both containing only one non-alphanumeric character '.
                 'allowed by this server/API. "close" does not match '.
                 'any of the allowed delimiters for this server/API. '.
                 'Allowed delimiters are: '.
-                $this->_getAllowedDelimitersForError()
+                self::getAllowedDelimitersForError()
             );
         }
 
@@ -641,7 +644,7 @@ class Regex
         $sep = '';
         for ($a = 0; $a < count($input); $a += 1) {
             if (substr_count($this->_modifiers, $input[$a]) === 0) {
-                if (in_array($input[$a], self::$_allowedModifiers)) {
+                if (self::modifierIsAllowed($input[$a])) {
                     $this->_modifiers .= $input[$a];
                 } else {
                     $output = false;
@@ -653,7 +656,7 @@ class Regex
                         $this->_errors['modifiers'] .= $sep.'"'.$input[$a].
                             '" is not allowed by this server/API.';
                     }
-                    
+
                     $sep = '; ';
                 }
             } else {
@@ -664,6 +667,29 @@ class Regex
             }
         }
         return $output;
+    }
+
+    /**
+     * Test whether a given character is a valid PCRE modifier and
+     * allowed by this API
+     *
+     * @param string  $modifier PCRE modifier character
+     * @param boolean $all      Whether or not to test against all
+     *                          PCRE modifiers or just the modifiers
+     *                          allowed by this class
+     *
+     * @return boolean TRUE if modifier is allowed
+     */
+    static public function modifierIsAllowed($modifier, $all = false)
+    {
+        $pcreModifiers = array(
+            'i', 'm', 's', 'x',
+            'A', 'D', 'S', 'U', 'X', 'J', 'u'
+        );
+
+        $allowed = ($all !== true) ? self::$_allowedModifiers : $pcreModifiers;
+
+        return in_array($modifier, $allowed);
     }
 
     /**
@@ -705,10 +731,10 @@ class Regex
      * Test whether a given delimiter is allowed by this server/API
      *
      * @param string $delim Delimiter charachter for PCRE regex
-     * 
+     *
      * @return boolean
      */
-    private function _delimiterIsAllowed($delim)
+    static public function delimiterIsAllowed(string $delim)
     {
         if (in_array($delim, self::$_allowedDelimiters)) {
             return true;
@@ -723,11 +749,39 @@ class Regex
     }
 
     /**
-     * Get all the allowed delimiters as a quoted, comma separated string
+     * Get the opening and closing delimter pair for a given delimter
+     * character
+     *
+     * @param string $delim character to be validated as a PCRE
+     *                      delimter
+     *
+     * @return array Array with two keys: "open" & "close"
+     *               each with a single character
+     */
+    static public function getPairedDelimiter(string $delim)
+    {
+        if (in_array($delim, self::$_allowedDelimiters)) {
+            return array(
+                'open' => $delim,
+                'close' => $delim
+            );
+        } else {
+            for ($a = 0; $a < count(self::$_allowedPairedDelimiters); $a += 1) {
+                if (in_array($delim, self::$_allowedPairedDelimiters[$a])) {
+                    return self::$_allowedPairedDelimiters[$a];
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get all the allowed delimiters as a quoted, comma separated
+     * string
      *
      * @return string
      */
-    private function _getAllowedDelimitersForError()
+    static public function getAllowedDelimitersForError()
     {
         $output = '';
         $sep = '';

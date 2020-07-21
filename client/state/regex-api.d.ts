@@ -232,23 +232,81 @@ export interface TransformedSample {
   duration: number
 }
 
-//  END:  Response sub-export interfaces
-// - - - - - - - - - - - - - - - - - - - - - - - -
-
+// EngineConfig provides basic config details for the API client to use
+// to ensure its requests aren't rejected by the server.
 export interface EngineConfig {
-  modifiers: [string],
+  // The modifiers allowed by the server/API
+  modifiers: {
+    allowed: [string],
+    default: string
+  },
+  // Which delimiters the server/API will allow.
+  // e.g. If the API is used by a Content Management System or Survey
+  //      engine and that system uses "%" and "{}" as delimiters in it's
+  //      templating, then those characters could be omitted from the
+  //      allowed delimters.
   delimiters: {
     single: [string],
     paired: [Delimiters]
+    default: Delimiters
   },
-  maxPart: Number,
-  maxWhole: Number,
-  maxRegexes?: Number,
-  maxSamples?: Number,
-  maxSampleLength?: Number,
-  maxTotalSampleLength?: Number,
-  maxReturnSampleLength?: Number
+  sample: {
+    split: {
+      allow: boolean,
+      doSplit: boolean,
+      splitChar: string
+    }
+    trim: {
+      allow: boolean,
+      before: boolean,
+      after: boolean
+    }
+  },
+  showWhiteSpace: boolean,
+  truncateReturned: {
+    // Maximum number of characters the API will return for a
+    // whole match
+    // [0 = unlimited (default: 300)]
+    maxCaptured: ConfigMax,
+    // Maximum number of characters the API will return for captured
+    // sub-patterns.
+    // [0 = unlimited (default: 300)]
+    maxWhole: ConfigMax,
+    // The maximum number of characters returned with the response for
+    // a given sample
+    // [0 = unlimited (default: 0)]
+    maxReturnSampleLength?: ConfigMax
+  },
+  // The following properties are optional because they may leak
+  // information about the server/API that would enable an attacker
+  // to more quickly DoS the API
+  limit?: {
+    // The maximum number of regex pairs the API will process on a
+    // single request
+    // [0 = unlimited (default: 0)]
+    maxRegexes?: number,
+    // The maximum number of sample strings the API will process on a
+    // single request
+    // [0 = unlimited (default: 0)]
+    maxSamples?: number,
+    // The maximum number of characters in a single sample string the
+    // API will allow.
+    // [0 = unlimited (default: 0)]
+    maxSampleLength?: number,
+    // The absolute total maximum characters the whole request JSON object
+    // can be before it's rejected by the API
+    // [0 = unlimited (default: 0)]
+    maxTotalRequestLength?: number,
+  }
 }
+
+export interface ConfigMax {
+  maximum: number,
+  default: number
+}
+
+//  END:  Response sub-export interfaces
+// - - - - - - - - - - - - - - - - - - - - - - - -
 
 //  END:  Response export interfaces
 // -----------------------------------------------

@@ -29,7 +29,8 @@ const defaultState = {
   settings: {
     truncateLong: {
       sample: 300,
-      matches: 300,
+      wholeMatche: 300,
+      subPattern: 300
     },
     showWhiteSpace: true
   },
