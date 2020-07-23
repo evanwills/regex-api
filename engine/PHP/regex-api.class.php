@@ -8,13 +8,18 @@
  *
  * @category RegexAPI
  * @package  RegexAPI
- * @author   Evan Wills <evan.wills@gmail.com>
+ * @author   Evan Wills <evan.i.wills@gmail.com>
  * @license  MIT <url>
  * @link     https://github.com/regex-api
  */
 
-require_once __DIR__.'/regex.class.php';
-require_once __DIR__.'/regex-api-config.class.php';
+
+if (!defined('REGEX_CLASS')) {
+    require_once __DIR__.'/regex.class.php';
+}
+if (!defined('REGEX_API_CONFIG')) {
+    require_once __DIR__.'/regex-api-config.class.php';
+}
 
 /**
  * Handle user supplied request data
@@ -106,17 +111,20 @@ class RegexAPI
         $this->_config = $config;
         $json = trim($json);
 
+        $maxRequestLen = $config->get('limitMaxLengthTotalRequest');
+
         if ($json === '') {
             $this->_errorCode = 201;
             $this->_errorMessage = 'JSON cannot be an empty string';
             return;
-        } elseif (strlen($json) > $config->get('limit.maxLength.totalRequest')) {
+        } elseif ($maxRequestLen > 0 && strlen($json) > $maxRequestLen) {
             $this->_errorCode = 202;
             $this->_errorMessage = 'JSON length exceded the maximum '.
-                'number of characters ('.
-                $config->get('limit.maxLength.totalRequest').')';
+                'number of characters ('.$maxRequestLen.'). '.
+                'Received: '.strlen($json);
             return;
         }
+        unset($maxRequestLen);
 
         try {
             $data = json_decode($json, true);
@@ -125,139 +133,11 @@ class RegexAPI
             $this->_errorMessage = 'Invalid JSON: '.$e->getMessage();
             return;
         }
+        unset($json);
 
-        if (!array_key_exists('type', $data)) {
-            $this->_errorCode = 100;
-            $this->_errorMessage = 'Request data is missing the type field';
-            return;
-        } elseif (!is_string($data['type'])) {
-            $this->_errorCode = 101;
-            $this->_errorMessage = 'Request data.type is invalid. '.
-                'Expecting string. Found '.gettype($data['type']).'.';
-            return;
-        } elseif (!in_array($data['type'], $this->_modes)) {
-            $this->_errorCode = 102;
-            $this->_errorMessage = 'Request data.type is invalid. '.
-                'Expecting one of the following: "'.
-                implode('", "', $this->_modes).'". '.
-                'Found: "'.$data['type'].'"';
-            return;
-        } else {
-            $this->_mode = $data['type'];
-        }
-
-
-        $func = ($this->_mode === 'test') ? 'Test' : 'Replace';
-        $func = '_validate'.$func.'Regex';
-
-
-        if (!array_key_exists('regexes', $data)) {
-            $this->_errorCode = 110;
-            $this->_errorMessage = 'Request data is missing the regexes field';
-            return;
-        } elseif (!is_array($data['regexes'])) {
-            $this->_errorCode = 111;
-            $this->_errorMessage = 'Request data.regexes is invalid. '.
-                'Expecting array. Found '.gettype($data['regexes']).'.';
-            return;
-        } elseif (count($data['regexes']) === 0) {
-            $this->_errorCode = 112;
-            $this->_errorMessage = 'Request data.regexes contains no '.
-                'regular expressions. '.
-                'What\'s the point of this request?';
-            return;
-        } elseif (count($data['regexes']) > $config->get('limit.count.regex')) {
-            $this->_errorCode = 113;
-            $this->_errorMessage = 'Request data.regexes contains '.
-                'too many regular expressions. '.
-                'Naughty! Naughty! We only allow '.
-                $config->get('limit.count.regex').
-                '. Received '.count($data['regexes']);
-            return;
-        } else {
-            foreach ($data['regexes'] as $regex) {
-                $tmp = $this->$func($regex);
-                if ($tmp === false) {
-                    return;
-                } else {
-                    $this->_regexes[] = $tmp;
-                }
-            }
-        }
-
-        if ($this->_mode !== 'test') {
-            if (!array_key_exists('samplestrings', $data)) {
-                $this->_errorCode = 120;
-                $this->_errorMessage = 'Request data is missing the '.
-                    'samplestrings field';
-                return;
-            } elseif (!is_array($data['samplestrings'])) {
-                $this->_errorCode = 121;
-                $this->_errorMessage = 'Request data.samplestrings is '.
-                   'invalid. Expecting array. Found '.
-                   gettype($data['samplestrings']).'.';
-                return;
-            } elseif (count($data['samplestrings']) === 0) {
-                $this->_errorCode = 122;
-                $this->_errorMessage = 'Request data.samplestrings '.
-                    'contains no sample strings. '.
-                    'You must provide at least one empty string';
-                return;
-            } elseif (count($data['samplestrings']) > $config->get('limit.count.sample')) {
-                $this->_errorCode = 113;
-                $this->_errorMessage = 'Request data.samplestrings '.
-                    'contains too many sample strings. '.
-                    'Naughty! Naughty! We only allow '.
-                    $config->get('limit.count.sample').
-                    '. Received '.count($data['samplestrings']);
-                return;
-            } else {
-                $total = 0;
-                foreach ($data['samplestrings'] as $sample) {
-                    $len = strlen($sample);
-                    $total += $len;
-                    if (strlen($sample) > $config->get('limit.maxLength.singleSample')) {
-                        $this->_errorCode = 114;
-                        $this->_errorMessage = 'Request data.samplestrings '.
-                            'contains a sample with too many characters. '.
-                            'We only allow '.
-                            $config->get('limit.maxLength.singleSample').
-                            'characters per sample. '.
-                            'Received '.count($data['samplestrings']);
-                        return;
-                    } elseif ($total > $config->get('limit.maxLength.totalSample')) {
-                        $this->_errorCode = 115;
-                        $this->_errorMessage = 'The cumulative '.
-                            'character count of data.samplestrings ('.
-                            $total.') excedes the maximum cumulative '.
-                            'character count ('.
-                            $config->getConfig('limit.maxLength.totalSample').
-                            ') this instance of RegexAPI will process';
-                        return;
-                    }
-                    $this->_samples[] = $sample;
-                }
-            }
-
-            if (!array_key_exists('chainRegexes', $data)) {
-                $this->_errorCode = 130;
-                $this->_errorMessage = 'Request data is missing the '.
-                    'chainRegexes field';
-                return;
-            } elseif (!is_bool($data['chainRegexes'])) {
-                $this->_errorCode = 131;
-                $this->_errorMessage = 'Request data.chainRegexes is '.
-                   'invalid. Expecting boolean. Found '.
-                   gettype($data['chainRegexes']).'.';
-                return;
-            } else {
-                $this->_chainRegexes = $data['chainRegexes'];
-            }
-
-            if ($this->_mode === 'match') {
-                if (!$this->_validateMatchConfig($data)) {
-                    return;
-                }
+        if ($this->_validateType($data)) {
+            if ($this->_validateAllRegexes($data)) {
+                $this->_validateAllSamples($data);
             }
         }
     }
@@ -721,6 +601,202 @@ class RegexAPI
             }
         }
         return true;
+    }
+
+    /**
+     * Test and import Regex part of request
+     *
+     * @param array $data Associative array from from parsed JSON data
+     *
+     * @return boolean TRUE if regex data was valid FALSE otherwise
+     */
+    private function _validateAllRegexes(array $data)
+    {
+        $regexCount = $this->_config->get('limitCountRegex');
+
+        if (!array_key_exists('regexes', $data)) {
+            $this->_errorCode = 110;
+            $this->_errorMessage = 'Request data is missing the regexes field';
+            return false;
+        } elseif (!is_array($data['regexes'])) {
+            $this->_errorCode = 111;
+            $this->_errorMessage = 'Request data.regexes is invalid. '.
+                'Expecting array. Found '.gettype($data['regexes']).'.';
+            return false;
+        } else {
+            $c = count($data['regexes']);
+            if ($c === 0) {
+                $this->_errorCode = 112;
+                $this->_errorMessage = 'Request data.regexes contains '.
+                    'no regular expressions. What\'s the point of '.
+                    'this request?';
+                return false;
+            } elseif ($regexCount > 0 && $c > $regexCount) {
+                $this->_errorCode = 113;
+                $this->_errorMessage = 'Request data.regexes '.
+                    'contains too many regular expressions. '.
+                    'Naughty! Naughty! We only allow '.
+                    $regexCount.'. Received '.$c;
+                return;
+            } else {
+                $func = ($this->_mode === 'test') ? 'Test' : 'Replace';
+                $func = '_validate'.$func.'Regex';
+
+                foreach ($data['regexes'] as $regex) {
+                    $tmp = $this->$func($regex);
+                    if ($tmp === false) {
+                        return false;
+                    } else {
+                        $this->_regexes[] = $tmp;
+                    }
+                    unset($tmp);
+                }
+                unset($func, $c);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Test and import sample part of regex
+     *
+     * @param array $data Associative array from from parsed JSON data
+     *
+     * @return void
+     */
+    private function _validateAllSamples(
+        array $data
+    ) {
+        $sampleCount = $this->_config->get('limitCountSample');
+        $maxSampleLen = $this->_config->get('limitMaxLengthSingleSample');
+        $totalSampleLen = $this->_config->get('limitMaxLengthTotalSample');
+
+        if ($this->_mode !== 'test') {
+            if (!array_key_exists('samplestrings', $data)) {
+                $this->_errorCode = 120;
+                $this->_errorMessage = 'Request data is missing the '.
+                    'samplestrings field';
+                return;
+            } elseif (!is_array($data['samplestrings'])) {
+                $this->_errorCode = 121;
+                $this->_errorMessage = 'Request data.samplestrings is '.
+                   'invalid. Expecting array. Found '.
+                   gettype($data['samplestrings']).'.';
+                return;
+            } else {
+                $c = count($data['samplestrings']);
+                if ($c === 0) {
+                    $this->_errorCode = 122;
+                    $this->_errorMessage = 'Request data.samplestrings '.
+                        'contains no sample strings. '.
+                        'You must provide at least one empty string';
+                    return;
+                } elseif ($sampleCount > 0 && $c > $sampleCount) {
+                    $this->_errorCode = 113;
+                    $this->_errorMessage = 'Request data.samplestrings '.
+                        'contains too many sample strings. '.
+                        'Naughty! Naughty! We only allow '.
+                        $sampleCount.
+                        '. Received '.$c;
+                    return;
+                } else {
+                    // If we only have one sample, then it can be as
+                    // long as the total sample length
+                    $maxSampleLen = ($c === 1) ?
+                        $totalSampleLen :
+                        $maxSampleLen;
+                    $total = 0;
+
+                    for ($a = 0; $a < $c; $a += 1) {
+                        $sample = $data['samplestrings'][$a];
+                        $len = strlen($sample);
+                        $total += $len;
+
+                        if ($maxSampleLen > 0
+                            && $len > $maxSampleLen
+                        ) {
+                            $this->_errorCode = 114;
+                            $this->_errorMessage = 'Request data.samplestrings '.
+                            'contains a sample with too many '.
+                            'characters. We only allow '.
+                            $maxSampleLen.'characters per sample. '.
+                            'Received '.$len;
+                            return;
+                        } elseif ($totalSampleLen > 0
+                            && $total > $totalSampleLen
+                        ) {
+                            $this->_errorCode = 115;
+                            $this->_errorMessage = 'The cumulative '.
+                            'character count of data.samplestrings ('.
+                            $total.') excedes the maximum cumulative '.
+                            'character count ('.$totalSampleLen.
+                            ') this instance of RegexAPI will process';
+                            return;
+                        }
+                        $this->_samples[] = $sample;
+
+                        unset($sample, $len);
+                    }
+                    unset($total, $a);
+
+                }
+                unset($c);
+            }
+
+            if (!array_key_exists('chainRegexes', $data)) {
+                $this->_errorCode = 130;
+                $this->_errorMessage = 'Request data is missing the '.
+                    'chainRegexes field';
+                return;
+            } elseif (!is_bool($data['chainRegexes'])) {
+                $this->_errorCode = 131;
+                $this->_errorMessage = 'Request data.chainRegexes is '.
+                   'invalid. Expecting boolean. Found '.
+                   gettype($data['chainRegexes']).'.';
+                return;
+            } else {
+                $this->_chainRegexes = $data['chainRegexes'];
+            }
+
+            if ($this->_mode === 'match') {
+                if (!$this->_validateMatchConfig($data)) {
+                    return;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Test and set "type" of request
+     *
+     * @param array $data Associative array from from parsed JSON data
+     *
+     * @return boolean
+     */
+    private function _validateType($data)
+    {
+
+        if (!array_key_exists('type', $data)) {
+            $this->_errorCode = 100;
+            $this->_errorMessage = 'Request data is missing the type field';
+            return false;
+        } elseif (!is_string($data['type'])) {
+            $this->_errorCode = 101;
+            $this->_errorMessage = 'Request data.type is invalid. '.
+                'Expecting string. Found '.gettype($data['type']).'.';
+            return false;
+        } elseif (!in_array($data['type'], $this->_modes)) {
+            $this->_errorCode = 102;
+            $this->_errorMessage = 'Request data.type is invalid. '.
+                'Expecting one of the following: "'.
+                implode('", "', $this->_modes).'". '.
+                'Found: "'.$data['type'].'"';
+            return false;
+        } else {
+            $this->_mode = $data['type'];
+            return true;
+        }
     }
 }
 

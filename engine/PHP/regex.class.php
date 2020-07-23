@@ -8,10 +8,12 @@
  *
  * @category RegexAPI
  * @package  RegexAPI
- * @author   Evan Wills <evan.wills@gmail.com>
+ * @author   Evan Wills <evan.i.wills@gmail.com>
  * @license  MIT <url>
  * @link     https://github.com/regex-api
  */
+
+define('REGEX_CLASS', true);
 
 /**
  * Handle doing preg stuff for a single regular expression applied

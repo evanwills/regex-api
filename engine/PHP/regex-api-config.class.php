@@ -8,12 +8,17 @@
  *
  * @category RegexAPI
  * @package  RegexAPI
- * @author   Evan Wills <evan.wills@gmail.com>
+ * @author   Evan Wills <evan.i.wills@gmail.com>
  * @license  MIT <url>
  * @link     https://github.com/regex-api
  */
 
-require_once __DIR__.'/regex.class.php';
+if (!defined('REGEX_CLASS')) {
+    require_once __DIR__.'/regex.class.php';
+}
+
+
+define('REGEX_API_CONFIG', true);
 
 /**
  * Handle user supplied request data
@@ -28,45 +33,6 @@ class RegexAPIconfig
 {
     // ==========================================
     // START: config properties
-
-
-    /**
-     * The maximum number of regular expressions allowed to be
-     * processed per request
-     *
-     * @var integer
-     */
-    private $_maxRegexes = 100;
-
-    /**
-     * The maximum number of sample strings allowed to be
-     * processed per request
-     *
-     * @var integer
-     */
-    private $_maxSamples = 200000;
-
-    /**
-     * The maximum number characters allowed per sample
-     *
-     * @var integer
-     */
-    private $_maxSampleLength = 1000000;
-
-    /**
-     * The maximum total number characters for all samples combined
-     *
-     * @var integer
-     */
-    private $_maxTotalSampleLength = 1000000;
-
-    /**
-     * The maximum total number characters for the request data
-     * object
-     *
-     * @var integer
-     */
-    private $_maxTotalRequestLength = 10000000;
 
     /**
      * User Interface default values (to be provided) when client
@@ -111,16 +77,17 @@ class RegexAPIconfig
     );
     private $_limit = array(
         'count' => array(
-            'regex' => 100,
-            'sample' => 200000
+            'regex' => 0,
+            'sample' => 0
         ),
         'maxLength' => array(
-            'singleRegex' => 1000,
-            'singleSample' => 1000000,
-            'totalSample' => 1000000,
-            'totalRequest' => 2000000
+            'singleRegex' => 0,
+            'singleSample' => 0,
+            'totalSample' => 0,
+            'totalRequest' => 0
         )
     );
+
     /**
      * Flat associative array where each key matches the case
      * insensitive (lowercase) version of one of the keys used in
@@ -134,16 +101,16 @@ class RegexAPIconfig
     private $_iKeys = array();
 
     /**
-     * When returning match results it's useful to show what the
-     * sample the match was taken from looked like. However There's
-     * no real need to send the whole sample back to the user when
-     * they already have it on their machine.
+     * Flat associative array where each key matches the case
+     * insensitive (lowercase) version of one of the keys used in
+     * UIdefaults.
      *
-     * This tells PHP how much of the sample to return with the response.
+     * Makes setting default values easier because keys become more
+     * tollerant of unimportant casing (and in some case localisation)
      *
-     * @var integer
+     * @var array
      */
-    private $_maxReturnSampleLength = 300;
+    private $_iSingleKeys = array();
 
     /**
      * Error message for invalid config value
@@ -174,48 +141,27 @@ class RegexAPIconfig
      *
      * @param boolean $input Whether or not to send limit info when
      *                       outputting whole config
-     *
-     * @return vlid
      */
     public function __construct(bool $input = false)
     {
         $this->_exposeLimit = $input;
+
+        $this->_getIkeys($this->_sample, 'sample');
+        $this->_getIkeys($this->_regex, 'regex');
+        $this->_getIkeys($this->_returned, 'returned');
+        $this->_getIkeys($this->_limit, 'limit');
+        $this->_americanise();
+
+        ksort($this->_iKeys);
+        ksort($this->_iSingleKeys);
+
+        // debug($this->_iKeys, $this->_iSingleKeys);
     }
 
 
     //  END:  Constructor
     // ==========================================
     // START: public (static) config methods
-
-    /**
-     * Shorthand method for getConfig
-     *
-     * @param string $input Dot separated list of parameters to be
-     *                      passed to getConfig
-     *
-     * @return array,string,int,bool
-     */
-    public function get($input)
-    {
-        if (!is_string($input) || trim($input) === '') {
-            throw new Exception(
-                'RegexAPIconfig::get() expects only parameter to '.
-                'be a non-empty string'
-            );
-        }
-        $args = explode('.', trim($input));
-
-        $prop = isset($args[0]) ? $args[0]: false;
-        $key1 = isset($args[1]) ? $args[1]: false;
-        $key2 = isset($args[2]) ? $args[2]: false;
-
-        try {
-            $output = $this->getConfig($prop, $key1, $key2);
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
-        }
-        return $output;
-    }
 
 
     /**
@@ -282,6 +228,40 @@ class RegexAPIconfig
     }
 
     /**
+     * Shorthand method for getConfig
+     *
+     * @param string $field Key that matches the combined ancestor
+     *                      keys of the property to be returned
+     *
+     * @return string,int,bool
+     */
+    public function get($field)
+    {
+        if (!is_string($field) || trim($field) === '') {
+            throw new Exception(
+                'RegexAPIconfig::get() expects only parameter to '.
+                'be a non-empty string'
+            );
+        }
+
+        $_field = strtolower($field);
+        if (array_key_exists($_field, $this->_iSingleKeys)) {
+            return call_user_func_array(
+                array($this, 'getConfig'),
+                $this->_iSingleKeys[$_field]
+            );
+        } else {
+            throw new Exception(
+                'RegexAPIconfig::get() expects only parameter to '.
+                'be a string matching the combined keys for a '.
+                'single config property. "'.$field.'" does not '.
+                'match any of the fillowing: "'.
+                implode('", "', $this->_iSingleKeys).'"'
+            );
+        }
+    }
+
+    /**
      * Set one of the default values for this class
      *
      * @param string,int,bool $input New value to replace existing
@@ -304,10 +284,13 @@ class RegexAPIconfig
         $updated = '';
         $methodName = '';
         $message = '';
-        $prop = $this->_getKeyInsensitive($prop);
+        // debug($prop, $key1, $key2);
+        $prop = '_'.$this->_getKeyInsensitive($prop);
         $key1 = $this->_getKeyInsensitive($key1);
         $key2 = $this->_getKeyInsensitive($key2, true);
         $level = 0;
+
+        // debug($prop, $key1, $key2);
 
         $input = (is_string($input)) ? trim($input) : $input;
 
@@ -317,10 +300,12 @@ class RegexAPIconfig
             $methodName = '_valid'.ucfirst($prop);
             $updated .= 'RegexAPIconfig::$_'.$prop;
             $level = 1;
+
             if ($key1 !== false && array_key_exists($key1, $this->$prop)) {
                 $updated .= '['.$key1.']';
                 $methodName .= ucfirst($key1);
                 $level = 2;
+
                 if ($key2 !== false) {
                     if ($key2 !== '') {
                         if (array_key_exists($key2, $this->$prop[$key1])) {
@@ -399,6 +384,72 @@ class RegexAPIconfig
     }
 
     /**
+     * Shorthand method for getConfig
+     *
+     * @param string          $field Key that matches the combined
+     *                               ancestor keys of the property
+     *                               to be returned
+     * @param string,int,bool $value Config value to be set
+     *
+     * @return string,int,bool
+     */
+    public function set($field, $value)
+    {
+        if (!is_string($field) || trim($field) === '') {
+            throw new Exception(
+                'RegexAPIconfig::get() expects first parameter to '.
+                'be a non-empty string'
+            );
+        }
+
+        $_field = strtolower($field);
+        if (array_key_exists($_field, $this->_iSingleKeys)) {
+            $params = array_merge(
+                array($value),
+                $this->_iSingleKeys[$_field]
+            );
+            return call_user_func_array(
+                array($this, 'setConfig'),
+                $params
+            );
+        } else {
+            throw new Exception(
+                'RegexAPIconfig::set() expects first parameter '.
+                '$field to be a string matching the combined keys '.
+                'for a single config property. "'.$field.'" does '.
+                'not match any of the fillowing: "'.
+                implode('", "', $this->_iSingleKeys).'"'
+            );
+        }
+    }
+
+    /**
+     * Set multiple RegexAPI config values with a single call
+     *
+     * @param array $fields Flat associative array of key/value pairs
+     *
+     * @return boolean TRUE if all values were set
+     */
+    public function setMulti(array $fields)
+    {
+        // debug($fields);
+        foreach ($fields as $key => $value) {
+            try {
+                // debug('about to set config value', $key, "\$value: $value");
+                $this->set($key, $value);
+            } catch (Exception $e) {
+                $find = array('::setConfig', 'first parameter $field');
+                $replace = array('::setMulti', 'config key');
+                throw new Exception(
+                    str_replace($find, $replace, $e->getMessage())
+                );
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Set multiple default values at once.
      *
      * @param array $defaults Array of new defaults to be set
@@ -406,9 +457,8 @@ class RegexAPIconfig
      * @return true If any defaults are invalid this method with
      *              throw and exception
      */
-    public function setDefaultsMulti(
-        $defaults
-    ) {
+    public function setDefaultsMulti($defaults)
+    {
         $output = $this->_setDefaultsMulti($defaults);
 
         if (is_array($output)) {
@@ -661,34 +711,8 @@ class RegexAPIconfig
         }
 
         $key = strtolower($key);
-
-        if (empty($this->_iKeys)) {
-            $this->_iKeys = array_merge(
-                $this->_getIkeys($this->_sample),
-                $this->_getIkeys($this->_regex),
-                $this->_getIkeys($this->_returned),
-                $this->_getIkeys($this->_limit)
-            );
-            // make keys american (and plural) safe
-            $this->_iKeys['normalise'] = 'normaliseLineEnd';
-            $this->_iKeys['normalize'] = 'normaliseLineEnd';
-            $this->_iKeys['normalizelineend'] = 'normaliseLineEnd';
-
-            foreach ($this->_iKeys as $key => $value) {
-                $_key = strtolower($value);
-                $max = substr($_key, 0, 3);
-                if ($max === 'max') {
-                    $_key = substr($_key, 3);
-                    if (!array_key_exists($_key, $this->_iKeys)) {
-                        $this->_iKeys[$_key] = $value;
-                    }
-                    // } else {
-                    //     $s = substr($_key, -1, 1);
-                    //     if ($s === '') {
-
-                    //     }
-                }
-            }
+        if (substr($key, 0, 1) === '_') {
+            $key = substr($key, 1);
         }
 
         if (array_key_exists($key, $this->_iKeys)) {
@@ -702,23 +726,70 @@ class RegexAPIconfig
      * Recursive function to get all the keys for $this->_UIdefaults to
      * allow for case insensitive matching of keys.
      *
-     * @param array $defaults array of key/value pairs.
+     * @param array        $defaults  array of key/value pairs.
+     * @param string,array $ancestors All the ancestor keys
      *
      * @return array Flat array of key/value pairs where the key is
      *               the all lowercase version of the value
      */
-    private function _getIkeys(array $defaults)
+    private function _getIkeys(array $defaults, $ancestors)
     {
-        $output = array();
-        foreach ($defaults as $key => $value) {
-            if (is_array($value)) {
-                $output = array_merge($output, $this->_getIkeys($value));
+        if (is_string($ancestors)) {
+            if (property_exists($this, '_'.$ancestors)) {
+                $_ancestors = strtolower($ancestors);
+                $this->_iKeys[$_ancestors] = $ancestors;
+                $ancestors = array('_'.$_ancestors);
+
             } else {
-                $_key = strtolower($key);
-                $output[$_key] = $key;
+                throw new Exception(
+                    'Private method RegexAPIconfig::_getIKeys() '.
+                    'expects second parameter $ancestors to be a '.
+                    'string matching one of the API\'s config '.
+                    'properties. "'.$ancestors.'" does not match '.
+                    'any.'
+                );
             }
         }
-        return $output;
+
+        foreach ($defaults as $key => $value) {
+            $_ancestors = $ancestors;
+            $_key = strtolower($key);
+            $_ancestors[] = $key;
+
+            $this->_iKeys[$_key] = $key;
+            if (is_array($value)) {
+                $this->_getIkeys(
+                    $value,
+                    $_ancestors
+                );
+            } else {
+                $oneKey = strtolower(implode('', $_ancestors));
+                $oneKey = substr($oneKey, 1);
+                $this->_iSingleKeys[$oneKey] = $_ancestors;
+            }
+        }
+    }
+
+    /**
+     * Add American "iZe" versions of keys because american's can't
+     * spell
+     *
+     * @return void
+     */
+    private function _americanise()
+    {
+        foreach ($this->_iKeys as $key => $value) {
+            $_key = str_replace('ise', 'ize', $key);
+            if ($_key !== $key) {
+                $this->_iKeys[$_key] = $value;
+            }
+        }
+        foreach ($this->_iSingleKeys as $key => $value) {
+            $_key = str_replace('ise', 'ize', $key);
+            if ($_key !== $key) {
+                $this->_iSingleKeys[$_key] = $value;
+            }
+        }
     }
 }
 
