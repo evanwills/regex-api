@@ -1,14 +1,22 @@
-
 # ===============================================
 # START: Enums
 
-enum requestMode {
+enum ErequestType {
   test,
   match,
-  replace
+  replace,
+  getConfig
 }
 
-enum regexErrorType {
+enum EResponseType {
+  test,
+  match,
+  replace,
+  config,
+  error
+}
+
+enum EregexErrorType {
   delimiter,
   modifier,
   pattern
@@ -26,7 +34,9 @@ interface IapiResponse {
   """List of results for test of each supplied regex"""
   content: [ResponseBody],
   """Human readable description of success/error type"""
-  message: string
+  message: string,
+  """Type of content contained in the "content" property"""
+  type: EResponseType
 }
 
 #  END:  Interfaces
@@ -79,13 +89,13 @@ type MatchConfig {
 
 
 type APItestRequest {
-  type: requestMode!,
+  type: ErequestType!,
   """List of regexes to be tested for validity"""
   regexes: [Regex]!
 }
 
 type APIreplaceRequest implements APItestRequest {
-  type: requestMode!,
+  type: ErequestType!,
   """List of regexes to apply to sample strings"""
   regexes: [regexMatchReplace]!,
   """List of sample strings to which regexes are to be applied"""
@@ -93,7 +103,7 @@ type APIreplaceRequest implements APItestRequest {
 }
 
 type APImatchRequest implements APIreplaceRequest {
-  type: requestMode!,
+  type: ErequestType!,
   regexes: [regexMatchReplace]!,
   sampleStrings: [String]!
   """Whether or not to apply find/replace sequentially on strings or to apply find/replace to fresh version of original string"""
@@ -111,7 +121,7 @@ type APImatchRequest implements APIreplaceRequest {
 
 
 
-type APIinvalidRequestResponse implements IapiResponse {
+type ApiErrorResponse implements IapiResponse {
   """Whether or not the request was OK or not"""
   ok: false,
   """Code for response type success/error type"""
@@ -119,10 +129,16 @@ type APIinvalidRequestResponse implements IapiResponse {
   """Error message"""
   content: String!,
   """Human readable description of success/error type"""
-  message: string
+  message: string,
+  hasTiming: false,
+  """
+  Type of content contained in the "content" property
+  (Should always be "error")
+  """
+  type: EResponseType
 }
 
-type APItestResponse implements IapiResponse {
+type ApiTestResponse implements IapiResponse {
   """Whether or not the request was OK or not"""
   ok: true,
   """Code for response type success/error type"""
@@ -130,32 +146,58 @@ type APItestResponse implements IapiResponse {
   """List of results for test of each supplied regex"""
   content: [TestResponse],
   """Human readable description of success/error type"""
-  message: string
+  message: string,
+  hasTiming: false,
+  """
+  Type of content contained in the "content" property
+  (Should always be "test")
+  """
+  type: EResponseType
 }
 
-type APImatchResponse implements IapiResponse {
+type ApiMatchResponse implements IapiResponse {
   ok: true,
   code: Number,
   content: [MatchResponse],
   message: string,
-  """Whether or not contents objects include timings for processing of regexes"""
-  hasTiming: Boolean
+  """
+  Whether or not contents objects include timings for processing of regexes
+  """
+  hasTiming: Boolean,
+  """
+  Type of content contained in the "content" property
+  (Should always be "match")
+  """
+  type: EResponseType
 }
 
-type APIreplaceResponse implements IapiResponse {
+type ApiReplaceResponse implements IapiResponse {
   ok: true,
   code: Number,
   content: [ReplaceResponse],
   message: string,
-  """Whether or not contents objects include timings for processing of regexes"""
-  hasTiming: Boolean
+  """
+  Whether or not contents objects include timings for processing of regexes
+  """
+  hasTiming: Boolean,
+  """
+  Type of content contained in the "content" property
+  (Should always be "replace")
+  """
+  type: EResponseType
 }
 
-type APIconfigResponse implements IapiResponse {
+type ApiConfigResponse implements IapiResponse {
   ok: true,
   code: Number,
-  content: engineConfig,
+  content: UIconfig,
   message: string
+  hasTiming: false,
+  """
+  Type of content contained in the "content" property
+  (Should always be "config")
+  """
+  type: EResponseType
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
@@ -175,12 +217,18 @@ type RegexError {
   """Whether or not the engine was able to fix the error"""
   autoRepair: Boolean!,
   """Which part of the regex does this error relate to"""
-  type: regexErrorType!,
-  """Message about the given erorr (cleaned up for user interface)"""
+  type: EregexErrorType!,
+  """Message about the given error (cleaned up for user interface)"""
   message: String!
-  """If there's an issue within the regex pattern. badCharacter is the character at which the issue starts"""
+  """
+  If there's an issue within the regex pattern.
+  badCharacter is the character at which the issue starts
+  """
   badCharacter: string,
-  """If there's an issue within the regex pattern. offset is the index of the character at which the issue starts"""
+  """
+  If there's an issue within the regex pattern.
+  offset is the index of the character at which the issue starts
+  """
   offset: Number,
   """Raw error message generated by regex engine"""
   rawMessage: string,

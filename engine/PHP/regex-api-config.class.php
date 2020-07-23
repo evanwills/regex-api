@@ -69,9 +69,18 @@ class RegexAPIconfig
     );
     private $_returned = array(
         'maxLength' => array(
-            'captured' => 300,
-            'whole' => 300,
-            'sample' => 300
+            'captured' => array(
+                'default' => 300,
+                'max' => 1024
+            ),
+            'whole' => array(
+                'default' => 300,
+                'max' => 1024
+            ),
+            'sample' => array(
+                'default' => 300,
+                'max' => 1024
+            )
         ),
         'showWhiteSpace' => true
     );
@@ -173,11 +182,17 @@ class RegexAPIconfig
      *                           array
      * @param string,false $key2 Key for third level in defaults
      *                           array
+     * @param string,false $key3 Key for third level in defaults
+     *                           array
      *
      * @return array,string,bool,int
      */
-    public function getConfig($prop = false, $key1 = false, $key2 = false)
-    {
+    public function getConfig(
+        $prop = false,
+        $key1 = false,
+        $key2 = false,
+        $key3 = false
+    ) {
         if ($prop === false) {
             $output = array(
                 'sample' => $this->_sample,
@@ -193,15 +208,31 @@ class RegexAPIconfig
         $prop = $this->_getKeyInsensitive($prop);
         $key1 = $this->_getKeyInsensitive($key1);
         $key2 = $this->_getKeyInsensitive($key2);
+        $key3 = $this->_getKeyInsensitive($key3);
 
         $prop = ($prop !== false) ? '_'.$prop : false;
 
         if ($prop !== false && property_exists($this, $prop)) {
+            $tmp = $this->{$prop};
             if ($key1 !== false) {
-                if (array_key_exists($key1, $this->$prop)) {
+                if (array_key_exists($key1, $tmp)) {
+                    $tmp = $tmp[$key1];
                     if ($key2 !== false) {
-                        if (array_key_exists($key2, $this->{$prop}[$key1])) {
-                            return $this->{$prop}[$key1][$key2];
+                        if (array_key_exists($key2, $tmp)) {
+                            $tmp = $tmp[$key2];
+                            if ($key3 !== false) {
+                                if (array_key_exists($key3, $tmp)) {
+                                    return $tmp[$key3];
+                                } else {
+                                    throw new Exception(
+                                        '"'.$key3.'" does not exist in '.
+                                        'RegexAPIconfig::$_'.$prop.
+                                        '['.$key1.']'.'['.$key2.']'
+                                    );
+                                }
+                            } else {
+                                return $tmp;
+                            }
                         } else {
                             throw new Exception(
                                 '"'.$key2.'" does not exist in '.
@@ -209,7 +240,7 @@ class RegexAPIconfig
                             );
                         }
                     } else {
-                        return $this->{$prop}[$key2];
+                        return $tmp;
                     }
                 } else {
                     throw new Exception(
@@ -218,8 +249,9 @@ class RegexAPIconfig
                     );
                 }
             } else {
-                return $this->$prop;
+                return $tmp;
             }
+            unset($tmp);
         } else {
             throw new Exception(
                 '"'.$prop.'" is not a RegexAPIconfig property'
@@ -272,6 +304,8 @@ class RegexAPIconfig
      *                               array
      * @param string          $key2  Key for third level in defaults
      *                               array
+     * @param string          $key3  Key for third level in defaults
+     *                               array
      *
      * @return true On success. Throws Exception on failure
      */
@@ -279,7 +313,8 @@ class RegexAPIconfig
         $input,
         string $prop,
         string $key1,
-        string $key2 = ''
+        string $key2 = '',
+        string $key3 = ''
     ) {
         $updated = '';
         $methodName = '';
@@ -288,6 +323,7 @@ class RegexAPIconfig
         $prop = '_'.$this->_getKeyInsensitive($prop);
         $key1 = $this->_getKeyInsensitive($key1);
         $key2 = $this->_getKeyInsensitive($key2, true);
+        $key3 = $this->_getKeyInsensitive($key3, true);
         $level = 0;
 
         // debug($prop, $key1, $key2);
@@ -297,38 +333,61 @@ class RegexAPIconfig
         $ok = true;
 
         if ($prop !== false && property_exists($this, $prop)) {
+            $oldVal = $this->{$prop};
             $methodName = '_valid'.ucfirst($prop);
             $updated .= 'RegexAPIconfig::$_'.$prop;
             $level = 1;
 
-            if ($key1 !== false && array_key_exists($key1, $this->$prop)) {
+            if ($key1 !== false && array_key_exists($key1, $oldVal)) {
+                $oldVal = $oldVal[$key1];
                 $updated .= '['.$key1.']';
                 $methodName .= ucfirst($key1);
                 $level = 2;
 
                 if ($key2 !== false) {
                     if ($key2 !== '') {
-                        if (array_key_exists($key2, $this->$prop[$key1])) {
+                        if (array_key_exists($key2, $oldVal)) {
+                            $oldVal = $oldVal[$key2];
                             $updated .= '['.$key2.']';
                             $methodName .= ucfirst($key2);
                             $level = 3;
-                            $tmp = $this->_isSameType(
-                                $input,
-                                $this->$prop[$key1][$key2]
-                            );
-                            if ($tmp !== '') {
-                                $ok = false;
-                                $this->_message = $tmp;
+                            if ($key3 !== false) {
+                                if ($key3 !== '') {
+                                    if (array_key_exists($key3, $oldVal)) {
+                                        $oldVal = $oldVal[$key3];
+                                        $updated .= '['.$key3.']';
+                                        $methodName .= ucfirst($key3);
+                                        $level = 4;
+                                        $tmp = $this->_isSameType($input, $oldVal);
+                                        if ($tmp !== '') {
+                                            $ok = false;
+                                            $this->_message = $tmp;
+                                        }
+                                    } else {
+                                        $ok = false;
+                                        $this->_message = '"'.$key3.
+                                            '" does not exist!.';
+                                    }
+                                } else {
+                                    $tmp = $this->_isSameType($input, $oldVal);
+                                    if ($tmp !== '') {
+                                        $ok = false;
+                                        $this->_message = $tmp;
+                                    }
+                                }
+                            } else {
+                                throw new Exception(
+                                    'RegexAPIconfig::setConfig() expects '.
+                                    'fifth parameter $key3 to be string '.
+                                    'matching a key for the '.$updated
+                                );
                             }
                         } else {
                             $ok = false;
                             $this->_message = '"'.$key2.'" does not exist!.';
                         }
                     } else {
-                        $tmp = $this->_isSameType(
-                            $input,
-                            $this->$prop[$key1]
-                        );
+                        $tmp = $this->_isSameType($input, $oldVal);
                         if ($tmp !== '') {
                             $ok = false;
                             $this->_message = $tmp;
@@ -338,15 +397,13 @@ class RegexAPIconfig
                     throw new Exception(
                         'RegexAPIconfig::setConfig() expects fourth '.
                         'parameter $key2 to be string matching a '.
-                        'key for the RegexAPIconfig::$'.$prop.
-                        '['.$key1.']'
+                        'key for the '.$updated
                     );
                 }
             } else {
                 throw new Exception(
                     'RegexAPIconfig::setConfig() expects third parameter '.
-                    '$key1 to be a string matching key for the '.
-                    'RegexAPIconfig::$'.$prop
+                    '$key1 to be a string matching key for the '.$updated
                 );
             }
         } else {
@@ -360,17 +417,11 @@ class RegexAPIconfig
             if (method_exists($this, $methodName)) {
                 $ok = $this->$methodName($input);
             } elseif (is_string($input)) {
-                $ok = $this->_validChar($input, $prop, $key1, $key2);
+                $ok = $this->_validChar($input, $prop, $key1, $key2, $key3);
             } elseif (is_int($input)) {
-                $ok = $this->_validMaxInt($input, $prop, $key1, $key2);
+                $ok = $this->_validMaxInt($input, $prop, $key1, $key2, $key3);
             } elseif (is_bool($input)) {
-                if ($level === 2) {
-                    $this->{$prop}[$key1] = $input;
-                } elseif ($level === 3) {
-                    $this->{$prop}[$key1][$key2] = $input;
-                } else {
-                    $ok = false;
-                }
+                $this->_internalSetVal($input, $prop, $key1, $key2, $key3);
             }
         }
 
@@ -547,10 +598,11 @@ class RegexAPIconfig
      * @param string $prop Key for first level in defaults array
      * @param string $key1 Key for second level in defaults array
      * @param string $key2 Key for third level in defaults array
+     * @param string $key3 Key for third level in defaults array
      *
      * @return boolean
      */
-    private function _validChar($char, $prop, $key1, $key2)
+    private function _validChar($char, $prop, $key1, $key2, $key3)
     {
         $len = strlen($char);
 
@@ -574,7 +626,7 @@ class RegexAPIconfig
                 }
             }
         }
-        $this->{$prop}[$key1][$key2] = $char;
+        $this->_internalSetVal($char, $prop, $key1, $key2, $key3);
         return true;
     }
 
@@ -586,13 +638,14 @@ class RegexAPIconfig
      * @param string  $prop  Key for first level in defaults array
      * @param string  $key1  Key for second level in defaults array
      * @param string  $key2  Key for third level in defaults array
+     * @param string  $key3  Key for third level in defaults array
      *
      * @return boolean
      */
-    private function _validMaxInt($input, $prop, $key1, $key2)
+    private function _validMaxInt($input, $prop, $key1, $key2, $key3)
     {
         if (is_int($input) && $input >= 0) {
-            $this->{$prop}[$key1][$key2];
+            $this->_internalSetVal($input, $prop, $key1, $key2, $key3);
             return true;
         }
         $this->_message = 'Must be greater than or equal to zero';
@@ -635,7 +688,6 @@ class RegexAPIconfig
             $this->_message = 'Delimiter "'.$input.'" is invalid.';
             return false;
         }
-
         $this->_regex['delimiters'] = $delim;
         return true;
     }
@@ -789,6 +841,34 @@ class RegexAPIconfig
             if ($_key !== $key) {
                 $this->_iSingleKeys[$_key] = $value;
             }
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param int,string,bool $input Number to be tested
+     * @param string          $prop  Key for first level in defaults
+     *                               array
+     * @param string          $key1  Key for second level in defaults
+     *                               array
+     * @param string          $key2  Key for third level in defaults
+     *                               array
+     * @param string          $key3  Key for third level in defaults
+     *                               array
+     *
+     * @return void
+     */
+    private function _internalSetVal($input, $prop, $key1, $key2 = '', $key3 = '')
+    {
+        if (is_string($key2) && $key2 !== '') {
+            if (is_string($key3) && $key3 !== '') {
+                $this->{$prop}[$key1][$key2][$key3] = $input;
+            } else {
+                $this->{$prop}[$key1][$key2] = $input;
+            }
+        } else {
+            $this->{$prop}[$key1] = $input;
         }
     }
 }
