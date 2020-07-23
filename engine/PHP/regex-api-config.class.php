@@ -201,7 +201,7 @@ class RegexAPIconfig
                 if (array_key_exists($key1, $this->$prop)) {
                     if ($key2 !== false) {
                         if (array_key_exists($key2, $this->{$prop}[$key1])) {
-                            return $this->{$prop}[$key2][$key2];
+                            return $this->{$prop}[$key1][$key2];
                         } else {
                             throw new Exception(
                                 '"'.$key2.'" does not exist in '.

@@ -423,20 +423,20 @@ class RegexAPI
         $fields = array('id', 'pattern', 'modifiers', 'delimiters');
         for ($a = 0; $a < count($fields); $a += 1) {
             $key = $fields[$a];
-            if (!in_array($key, $data)) {
-                $this->_errorCode = 200 + $a;
+            if (!array_key_exists($key, $data)) {
+                $this->_errorCode = 200 + $a + 1;
                 $this->_errorMessage = 'Regex is missing "'.$key.'" field';
                 return false;
             }
         }
-
+        debug($data);
         try {
             $output = new Regex(
                 $data['id'],
                 $data['pattern'],
                 '',
-                $data['modifiers'],
                 $data['delimiters'],
+                $data['modifiers'],
                 false
             );
         } catch (Exception $e) {

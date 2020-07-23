@@ -160,6 +160,7 @@ class Regex
         string $modifiers,
         bool $convertEscaped
     ) {
+        debug($delimiters);
         if (!$this->_validateDelimiters($delimiters)) {
             $this->_isValid = false;
         }
