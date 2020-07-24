@@ -421,7 +421,7 @@ class RegexAPIconfig
             } elseif (is_int($input)) {
                 $ok = $this->_validMaxInt($input, $prop, $key1, $key2, $key3);
             } elseif (is_bool($input)) {
-                $this->_internalSetVal($input, $prop, $key1, $key2, $key3);
+                $this->_setNestedValTrusted($input, $prop, $key1, $key2, $key3);
             }
         }
 
@@ -594,6 +594,9 @@ class RegexAPIconfig
      * Test whether a given character is valid to use as either a
      * line end character or a split character
      *
+     * This method assumes that the type of value being set has
+     * already be varified as being a string
+     *
      * @param string $char character to be tested
      * @param string $prop Key for first level in defaults array
      * @param string $key1 Key for second level in defaults array
@@ -626,13 +629,16 @@ class RegexAPIconfig
                 }
             }
         }
-        $this->_internalSetVal($char, $prop, $key1, $key2, $key3);
+        $this->_setNestedValTrusted($char, $prop, $key1, $key2, $key3);
         return true;
     }
 
     /**
      * Test whether an input is an integer and greater than
      * (or equal to) zero
+     *
+     * This method assumes that the type of value being set has
+     * already be varified as being an integer
      *
      * @param integer $input Number to be tested
      * @param string  $prop  Key for first level in defaults array
@@ -645,7 +651,7 @@ class RegexAPIconfig
     private function _validMaxInt($input, $prop, $key1, $key2, $key3)
     {
         if (is_int($input) && $input >= 0) {
-            $this->_internalSetVal($input, $prop, $key1, $key2, $key3);
+            $this->_setNestedValTrusted($input, $prop, $key1, $key2, $key3);
             return true;
         }
         $this->_message = 'Must be greater than or equal to zero';
@@ -845,7 +851,11 @@ class RegexAPIconfig
     }
 
     /**
-     * Undocumented function
+     * Set config value in appropriate place in hierarchy
+     *
+     * This method assumes everything passed to it has already been
+     * validated sets any value it's provided without any further
+     * validation
      *
      * @param int,string,bool $input Number to be tested
      * @param string          $prop  Key for first level in defaults
@@ -857,10 +867,15 @@ class RegexAPIconfig
      * @param string          $key3  Key for third level in defaults
      *                               array
      *
-     * @return void
+     * @return true
      */
-    private function _internalSetVal($input, $prop, $key1, $key2 = '', $key3 = '')
-    {
+    private function _setNestedValTrusted(
+        $input,
+        $prop,
+        $key1,
+        $key2 = '',
+        $key3 = ''
+    ) {
         if (is_string($key2) && $key2 !== '') {
             if (is_string($key3) && $key3 !== '') {
                 $this->{$prop}[$key1][$key2][$key3] = $input;
@@ -870,6 +885,112 @@ class RegexAPIconfig
         } else {
             $this->{$prop}[$key1] = $input;
         }
+    }
+
+    /**
+     * Set config value in appropriate place in hierarchy
+     *
+     * This method assumes that none of it's parameters can be trusted
+     * so it validates everything before doing it's main job.
+     *
+     * It is here for testing/debugging purposes only
+     *
+     * @param int,string,bool $input Number to be tested
+     * @param string          $prop  Key for first level in defaults
+     *                               array
+     * @param string          $key1  Key for second level in defaults
+     *                               array
+     * @param string          $key2  Key for third level in defaults
+     *                               array
+     * @param string          $key3  Key for third level in defaults
+     *                               array
+     *
+     * @return true
+     */
+    private function _setNestedVal($input, $prop, $key1, $key2 = '', $key3 = '')
+    {
+        $newType = gettype($input);
+        if (!is_scalar($input)) {
+            throw new Exception(
+                'RegexAPIconfig::_setNestedValTrusted() expects first '.
+                'param $input to be scalar '.$newType.' given.'
+            );
+        } else {
+            $_msg = false;
+            $_param = '';
+            $_config = 'RegexAPIconfig';
+            if (!is_string($prop) || $prop === '') {
+                $_param = 'second';
+
+            } elseif (!property_exists($this, $prop)) {
+                $_msg = true;
+                $_param = 'second';
+                $_config .= ' config properties';
+            } elseif (!is_string($key1) || $key1 === ''
+                || array_key_exists($key1, $this->$prop)
+            ) {
+                $_msg = true;
+                $_config = 'keys in '.$_config.'::$_'.$prop;
+                $_param = 'thrid';
+            } elseif (is_string($key2) && $key2 !== ''
+                && !array_key_exists($key2, $this->{$prop}[$key1])
+            ) {
+                $_msg = true;
+                $_config = 'keys in '.$_config.'::$_'.$prop.'['.$key1.']';
+                $_param = 'fourth';
+            } elseif (is_string($key3) && $key3 !== ''
+                && !array_key_exists($key3, $this->{$prop}[$key1][$key2])
+            ) {
+                $_msg = true;
+                $_config = 'keys in '.
+                    $_config.'::$_'.$prop.'['.$key1.']'.'['.$key2.']';
+                $param = 'fifth';
+            }
+            if ($param !== '') {
+                $_msg = ($_msg === true) ? ' matching one of the ' : '';
+                throw new Exception(
+                    'RegexAPIconfig::_setNestedValTrusted(). expects '.$_param.
+                    'to be a non-empty string'.$_msg.$_config
+                );
+            }
+        }
+
+        $val = 'RegexAPIconfig::$_'.$prop.'['.$key1.']';
+
+        if (is_string($key2) && $key2 !== '') {
+            $val .= '['.$key2.']';
+
+            if (is_string($key3) && $key3 !== '') {
+                $val .= '['.$key3.']';
+
+                $oldType = gettype($this->{$prop}[$key1][$key2][$key3]);
+                if ($oldType === $newType) {
+                    $this->{$prop}[$key1][$key2][$key3] = $input;
+                    return true;
+                }
+            } else {
+                $oldType = gettype($this->{$prop}[$key1][$key2]);
+                if ($oldType === $newType) {
+                    $this->{$prop}[$key1][$key2] = $input;
+                    return true;
+                }
+            }
+        } else {
+            $oldType = gettype($this->{$prop}[$key1]);
+            if ($oldType === $newType) {
+                $this->{$prop}[$key1] = $input;
+                return true;
+            }
+        }
+
+        $a = 'a';
+        $a .= (substr($oldType, 0, 1) === 'i') ? 'n' : '';
+
+        throw new Exception(
+            'RegexAPIconfig::_setNestedValTrusted() expects first param '.
+            '$input (intended to update '.$val.') to be '.$a.' '.
+            $oldType.'. '.$newType.' given.'
+        );
     }
 }
 
