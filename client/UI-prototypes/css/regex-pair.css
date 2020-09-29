@@ -1,0 +1,228 @@
+.regex-pair {
+  border: 0.05rem solid #ccc;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 1rem 1rem 1.5rem;
+  position: relative;
+  /* overflow-x: hidden; */
+  /* overflow-y: visible; */
+}
+.pair-label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: right;
+}
+.regex-pair h1 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 1.3rem;
+  height: 0.01rem;
+  margin: 0 0 0.3rem;
+  overflow: hidden;
+  width: 0.01rem;
+}
+.regex-pair h2 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 1rem;
+  margin: 0;
+}
+.regex-pair h3 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 0.95rem;
+  margin: 0;
+}
+.regex-pair ul, .regex-pair li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wrapping-label {
+  display: block;
+  padding-left: 1.6rem;
+  text-indent: -1.6rem;
+}
+
+.pair-btn {
+  border: none;
+  padding: 0.3rem 0.5rem;
+  min-width: 6.7rem;
+  position: absolute;
+  right: 0;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform ease-in-out 0.3s;
+}
+.regex-pair:hover .pair-btn, .regex-pair:focus-within .pair-btn {
+  transform: scaleX(1);
+  transition: transform ease-in-out 0.3s;
+}
+.pair-btn--add {
+  background-color: transparent;
+}
+.pair-btn--add::before {
+  background: #0b0;
+  bottom: 0;
+  content: '';
+  left: -0.5rem;
+  position: absolute;
+  right: -1rem;
+  top: 0;
+  z-index: -1;
+}
+.pair-btn--add::after {
+  background: #fff;
+  border-left: 0.05rem solid #ccc;
+  bottom: 0;
+  content: '';
+  right: -2.05rem;
+  position: absolute;
+  top: 0;
+  width: 2rem;
+  z-index: 1;
+}
+.pair-btn--add--before {
+  top: 0;
+}
+.pair-btn--add--before::before {
+  transform: skewX(45deg);
+}
+.pair-btn--add--after {
+  bottom: 0;
+}
+.pair-btn--add--after::before {
+  transform: skewX(-45deg);
+}
+.pair-btn--delete {
+  background: #b00;
+  color: #fff;
+  top: 0;
+}
+
+.regex-pair input, .regex-pair textarea {
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0.3rem 0.5rem;
+}
+.pair-inputs {
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 4.2rem 4.2rem 1fr;
+  grid-template-areas:
+    'findLabel findInput findInput '
+    'modifiersLabel modifiersInput .'
+    'replaceLabel replaceInput replaceInput';
+  padding-bottom: 1rem;
+}
+
+.pair-label--find {
+  grid-area: findLabel;
+}
+.pair-input--find {
+  grid-area: findInput;
+}
+.pair-label--modifiers {
+  grid-area: modifiersLabel;
+}
+.pair-input--modifiers {
+  align-self: start;
+  grid-area: modifiersInput;
+  text-align: left;
+}
+.pair-label--replace {
+  grid-area: replaceLabel;
+}
+.pair-input--replace {
+  grid-area: replaceInput;
+}
+.pair-settings--wrap {
+  background: #fff;
+  border: 0.05rem solid #ccc;
+  border-top: none;
+  font-size: 0.85rem;
+  left: -0.05rem;
+  margin-top: 0.5rem;
+  padding: 0 7rem 1rem 1rem;
+  position: absolute;
+  transition: transform 0.3s ease-in-out;
+  right: -0.05rem;
+  transform: scaleY(0);
+  transform-origin: top;
+  z-index: 10;
+}
+.regex-pair:hover .pair-settings--wrap,
+.regex-pair:focus-within .pair-settings--wrap {
+  transform: scaleY(1);
+  transform-origin: top;
+  transition: transform 0.3s ease-in-out;
+}
+.pair-settings {
+  display: flex;
+  flex-direction: column;
+  align-content: space-between;
+}
+
+.pair-transformWS {
+  padding-top: 1.5rem;
+}
+.pair-settings li {
+  display: inline-block;
+  margin: 0.3rem 1rem 0 0;
+  white-space: nowrap;
+}
+ul.pair-layout {
+  padding-top: 0.5rem !important;
+}
+.pair-delims input {
+  display: inline-block;
+  width: 1rem;
+}
+.pair-delims .pair-label {
+  display: inline-block;
+  padding-right: 0.5rem;
+  width: 3rem;
+}
+
+/*
+ * ========================================================
+ */
+
+@media screen and (min-width: 31rem) {
+  .pair-inputs {
+    grid-template-columns: 4.2rem 1fr 4.2rem;
+    grid-template-areas:
+      ' findLabel    findInput   modifiersLabel'
+      'replaceLabel replaceInput modifiersInput';
+  }
+  .pair-label--modifiers {
+    align-self: end;
+  }
+  .pair-settings {
+    flex-direction: row;
+  }
+  .pair-settings > div {
+    padding: 0 2rem;
+  }
+  .pair-transformWS {
+    padding-top: 1.5rem;
+    padding-right: 1rem;
+  }
+}
+
+@media screen and (min-width: 42rem) {
+  .pair-settings > * {
+    /* padding: 0.5rem 0; */
+    padding-right: 2rem;
+    width: 30%;
+  }
+}
+
+@media screen and (min-width: 62rem) {
+  .regex-pair--column-width .pair-inputs {
+    grid-template-columns: 1fr 4.2rem 1fr;
+    grid-template-areas:
+      'findLabel modifiersLabel replaceLabel'
+      'findInput modifiersInput replaceInput';
+  }
+  .regex-pair--column-width .pair-inputs .pair-label {
+    align-self: end;
+    text-align: left;
+  }
+}
