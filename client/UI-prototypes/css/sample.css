@@ -1,0 +1,12 @@
+.sample-label {
+  display: block;
+}
+.sample-input {
+  display: block;
+  width: 100%;
+  height: 30rem;
+}
+.sample-settings {
+  display: flex;
+  flex-direction: row;
+}

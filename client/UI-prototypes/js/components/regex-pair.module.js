@@ -1,4 +1,4 @@
-import { html } from '../lit-html.js';
+import { html } from '../lit-html.js'
 import { ucFirst, htmlEscape } from './regex-api--utils.module.js'
 
 /**
@@ -92,10 +92,11 @@ const singleLineInput = (id, value, subType, pattern) => {
   // let label = ucFirst(subType)
   let name = subType
   let place = 'Regex'
+  let classExtra = ''
   const _pattern = (typeof pattern === 'string' && pattern !== '') ? pattern : ''
   const _value = (typeof value === 'string' && value !== '') ? htmlEscape(value) : ''
 
-  switch(subType) {
+  switch (subType) {
     case 'replace':
       place = 'Replacement'
       break
@@ -106,17 +107,17 @@ const singleLineInput = (id, value, subType, pattern) => {
     case 'close':
       place = ''
       name = subType + 'Delim'
+      classExtra = 'two-char-input '
   }
   const _id = 'pair' + id + '-' + name
-  const _class = `pair-input pair-input--${name}`
+  const _class = `${classExtra}pair-input pair-input--${name}`
 
   return html`
     ${fieldLabel(_id, subType)}
     ${(_pattern !== '')
       ? html`<input type="text" id=${_id} class=${_class} .value=${_value} placeholder=${place} pattern=${_pattern} />`
       : html`<input type="text" id=${_id} class=${_class} .value=${_value} placeholder=${place} />`}
-  `;
-
+  `
 }
 
 /**
@@ -145,21 +146,13 @@ const multiLineInput = (id, value, subType, pattern) => {
       ? html`<textarea id=${_id} class=${_class} placeholder=${place} pattern=${_pattern}>${_value}</textarea>`
       : html`<textarea id=${_id} class=${_class} placeholder=${place}>${_value}</textarea>`
     }
-  `;
+  `
 }
 
 /**
+ * Render a whole Regex Pair block
  *
- * @param {number} id
- * @param {string} find
- * @param {string} replace
- * @param {string} modifiers
- * @param {boolean} transform
- * @param {string} openDelim
- * @param {string} closeDelim
- * @param {boolean} fullWidth
- * @param {boolean} multiLine
- * @param {boolean} hasSiblings
+ * @param {uiRegex} data All the data for a single regex pair
  */
 export const wholeRegexPair = (data) => {
   const _id = data.id
@@ -168,8 +161,17 @@ export const wholeRegexPair = (data) => {
   const _settingsID = `pair${_id}--settings`
   const _legendID = `pair${_id}--settings-legend`
 
+  // Only show delimiters input if they are required by the Regex Engine
   const delim = (data.delim.required === true)
-    ? html``
+    ? html`
+    <div class="pair-delimiters">
+      <h3 id="pair${_id}-delimiters-label">Delimiters</h3>
+      <ul class="setting-list" role="group" aria-labeledby="pair${_id}-delimiters-label">
+        <li class="setting-list__item">${singleLineInput(_id, data.delim.open, 'open', '^[^\\w\\d]$')}</li>
+        <li class="setting-list__item">${singleLineInput(_id, data.delim.close, 'close', '^[^\\w\\d]$')}</li>
+      </ul>
+    </div>
+    `
     : ''
 
   return html`
@@ -184,19 +186,12 @@ export const wholeRegexPair = (data) => {
         <h2 id=${_settingsID}>Settings</h2>
         <div class="pair-settings" role="group" aria-labeldby="${_legendID}">
           ${wholeChecboxInput(_id, data.transformWS, 'transformWS', 'Transform white space escape sequences in replace')}
-          ${(data.delim.required === true) ? html`
-          <div class="pair-delimiters">
-            <h3 id="pair${_id}-delimiters-label">Delimiters</h3>
-            <ul class="pair-delims" role="group" aria-labeledby="pair${_id}-delimiters-label">
-              <li>${singleLineInput(_id, data.delim.open, 'open', '^[^\\w\\d]$')}</li>
-              <li>${singleLineInput(_id, data.delim.close, 'close', '^[^\\w\\d]$')}</li>
-            </ul>
-          </div>` : ''}
+          ${delim}
           <div class="pair-layout">
             <h3 id="pair${_id}-layout">Layout</h3>
-            <ul class="pair-layout" role="group" aria-labelledby="pair${_id}-layout">
-              <li>${wholeChecboxInput(_id, data.fullWidth, 'fullWidth', 'Full width')}</li>
-              <li>${wholeChecboxInput(_id, data.multiLine, 'multiLine', 'Multi-line')}</li>
+            <ul class="setting-list" role="group" aria-labelledby="pair${_id}-layout">
+              <li class="setting-list__item">${wholeChecboxInput(_id, data.fullWidth, 'fullWidth', 'Full width')}</li>
+              <li class="setting-list__item">${wholeChecboxInput(_id, data.multiLine, 'multiLine', 'Multi-line')}</li>
             </ul>
           </div>
         </div>

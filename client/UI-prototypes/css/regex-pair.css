@@ -1,7 +1,7 @@
 .regex-pair {
   border: 0.05rem solid #ccc;
   font-family: Arial, Helvetica, sans-serif;
-  padding: 1rem 1rem 1.5rem;
+  padding: 1rem 1rem 0.5rem;
   position: relative;
   /* overflow-x: hidden; */
   /* overflow-y: visible; */
@@ -41,12 +41,16 @@
 }
 
 .pair-btn {
+  background: transparent;
   border: none;
+  /* border-right: 0.05rem solid #ccc; */
+  box-shadow: none;
   padding: 0.3rem 0.5rem;
   min-width: 6.7rem;
   position: absolute;
-  right: 0;
+  right: -0.05rem;
   transform: scaleX(0);
+  /* transform: scaleX(1); */
   transform-origin: right;
   transition: transform ease-in-out 0.3s;
 }
@@ -59,7 +63,9 @@
 }
 .pair-btn--add::before {
   background: #0b0;
+  border: 0.05rem solid #0b0;
   bottom: 0;
+  box-shadow: none;
   content: '';
   left: -0.5rem;
   position: absolute;
@@ -69,10 +75,11 @@
 }
 .pair-btn--add::after {
   background: #fff;
+  border: none;
   border-left: 0.05rem solid #ccc;
   bottom: 0;
   content: '';
-  right: -2.05rem;
+  right: -2.1rem;
   position: absolute;
   top: 0;
   width: 2rem;
@@ -93,7 +100,7 @@
 .pair-btn--delete {
   background: #b00;
   color: #fff;
-  top: 0;
+  top: -1rem;
 }
 
 .regex-pair input, .regex-pair textarea {
@@ -132,6 +139,7 @@
 .pair-input--replace {
   grid-area: replaceInput;
 }
+
 .pair-settings--wrap {
   background: #fff;
   border: 0.05rem solid #ccc;
@@ -147,6 +155,16 @@
   transform-origin: top;
   z-index: 10;
 }
+.pair-settings--wrap::after {
+  content: '';
+  position: absolute;
+  bottom: -2rem;
+  left: -0.05rem;
+  right: -0.05rem;
+  height: 2rem;
+  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0));
+}
+
 .regex-pair:hover .pair-settings--wrap,
 .regex-pair:focus-within .pair-settings--wrap {
   transform: scaleY(1);
@@ -169,10 +187,6 @@
 }
 ul.pair-layout {
   padding-top: 0.5rem !important;
-}
-.pair-delims input {
-  display: inline-block;
-  width: 1rem;
 }
 .pair-delims .pair-label {
   display: inline-block;
