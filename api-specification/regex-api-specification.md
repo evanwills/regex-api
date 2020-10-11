@@ -34,12 +34,39 @@ about the error as possible:
 1. Test the delimiters (if the engine requires delimiters)
    1. If there is a problem with the delimiters, try alternative 
       delimiters to find delimiters that do not have a problem.
+   2. Send alternitive recommended delimiter as part of the error
+      message
 2. Test the modifiers (if any are supplied)
    1. If there are bad modifiers, remove them.
+   2. Report which modifiers wer bad as part of error message
 3. Validate the regex with known good delimiters and modifiers
+4. Even if it's possible after finding alternative delimiters and
+   removing bad modifiers, skip running match/replace actions on 
+   regex with errors
 
 ### Handling pattern errors
 
 For pattern errors the engine should try to capture the character 
 that caused the erorr, and it's position and return that info with 
 the error object for that regex
+
+
+## Multiple regexes
+
+There are many times when using a single large all purpose regex on 
+a string is more error prone than using multiple single purpose 
+regexes. Regex API assumes that when it is supplied with multiple 
+regexes, the regexes are to be run in series ("Chained").
+
+It is also understood that there are good reasons why "chaining" 
+might be undesirable. Therefore, it is possible to toggle "chaining"
+on and off with each request. 
+
+__NOTE:___ If the chaining property isn't supplied with a request, 
+           it is assumed that chaining will be turned on.
+
+## Returning match results
+
+Match results must be returned grouped by sample (when multiple 
+samples are supplied). Then grouped by regexes (when multiple regexes 
+are supplied)

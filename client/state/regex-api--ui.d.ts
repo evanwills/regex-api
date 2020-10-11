@@ -1,4 +1,16 @@
-import { ID, Delimiters, RegexMatchReplace, RegexError } from './regex-api'
+import {
+  ID,
+  Delimiters,
+  RegexMatchReplace,
+  RegexError,
+  EngineListingItem,
+  UserEngineDefaults
+} from './regex-api'
+
+import {
+  TemplateResult
+} from 'node_modules\lit-html\ts3.4\lib\template-result.d.ts'
+
 // ===============================================
 // START: Enums
 
@@ -11,7 +23,27 @@ import { ID, Delimiters, RegexMatchReplace, RegexError } from './regex-api'
 // ===============================================
 // START: Interfaces
 
-export interface sample {
+export interface CheckboxInputData {
+  id: string,
+  label: string,
+  isChecked: boolean,
+  prefix?: string,
+  suffix?: string
+}
+
+export interface LabelInputData {
+  id: string,
+  label: string,
+  field: TemplateResult
+}
+
+export interface PositiveIntData {
+  id: string,
+  value: number,
+  max?: number
+}
+
+export interface Sample {
   splitSample: boolean,
   splitDelimiter: string,
   trimSample: boolean,
@@ -20,18 +52,23 @@ export interface sample {
   samples: [string]
 }
 
-export interface truncateLength {
+export interface TruncateLength {
   sample: number,
   wholeMatch: number,
   partMatch: number
 }
 
-export interface settings {
-  truncateLong: truncateLength,
-  showWhiteSpace: boolean
+export interface Settings {
+  truncateLong: TruncateLength,
+  showWhiteSpace: boolean,
+  availableEngines: [EngineListingItem],
+  engineConfig: {
+    engine: EngineConfig,
+    user: UserEngineDefaults
+  }
 }
 
-export interface uiRegex extends RegexMatchReplace {
+export interface UiRegex extends RegexMatchReplace {
   id: ID
   pattern: string,
   modifiers: string,

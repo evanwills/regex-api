@@ -232,23 +232,64 @@ export interface TransformedSample {
   duration: number
 }
 
+export interface EngineListingItem {
+  id: string,
+  label: string
+}
+
+
+export interface BaseEngineConfig {
+  sample: {
+    split: {
+      doSplit: boolean,
+      splitChar: string
+    }
+    trim: {
+      before: boolean,
+      after: boolean
+    }
+  },
+  showWhiteSpace: boolean,
+  truncateReturned: {
+    // Maximum number of characters the API will return for a
+    // whole match
+    // [0 = unlimited (default: 300)]
+    maxCaptured: ConfigMax,
+    // Maximum number of characters the API will return for captured
+    // sub-patterns.
+    // [0 = unlimited (default: 300)]
+    maxWhole: ConfigMax,
+    // The maximum number of characters returned with the response for
+    // a given sample
+    // [0 = unlimited (default: 0)]
+    maxReturnSampleLength?: ConfigMax
+  }
+}
+
+
 // EngineConfig provides basic config details for the API client to use
 // to ensure its requests aren't rejected by the server.
-export interface EngineConfig {
-  // The modifiers allowed by the server/API
-  modifiers: {
-    allowed: [string],
-    default: string
-  },
+export interface EngineConfig implements BaseEngineConfig {
+  id: string,
+  label: string,
   // Which delimiters the server/API will allow.
   // e.g. If the API is used by a Content Management System or Survey
   //      engine and that system uses "%" and "{}" as delimiters in it's
   //      templating, then those characters could be omitted from the
   //      allowed delimters.
   delimiters: {
+    // Single: The same character is used for both opening and closing
+    // delimiters
     single: [string],
+    // Paired: Different "paired" characters are used for opening and
+    // closing e.g. "{" & "}"
     paired: [Delimiters]
     default: Delimiters
+  },
+  // The modifiers allowed by the server/API
+  modifiers: {
+    allowed: [string],
+    default: string
   },
   sample: {
     split: {
@@ -297,6 +338,52 @@ export interface EngineConfig {
     // can be before it's rejected by the API
     // [0 = unlimited (default: 0)]
     maxTotalRequestLength?: number,
+  }
+}
+
+export interface UserEngineConfig implements BaseEngineConfig {
+  // When using multiple regexes, chaining causes "Match" actions to
+  // do a find and replace (after the match) on each sample then hand
+  // the now modified input on to the next regex.
+  //
+  // You would switch off chaining if you wanted to compare the
+  // behavior of different regexes to find the optimum pattern for a
+  // given use case
+  //
+  // NOTE: Chaining is always performed on "Replace" actions
+  chainRegexes: boolean,
+  // Which delimiters the server/API will allow.
+  // e.g. If the API is used by a Content Management System or Survey
+  //      engine and that system uses "%" and "{}" as delimiters in it's
+  //      templating, then those characters could be omitted from the
+  //      allowed delimters.
+  delimiters: Delimiters,
+  // The modifiers allowed by the server/API
+  modifiers: string,
+  sample: {
+    split: {
+      doSplit: boolean,
+      splitChar: string
+    }
+    trim: {
+      before: boolean,
+      after: boolean
+    }
+  },
+  showWhiteSpace: boolean,
+  truncateReturned: {
+    // Maximum number of characters the API will return for a
+    // whole match
+    // [0 = unlimited (default: 300)]
+    maxCaptured: ConfigMax,
+    // Maximum number of characters the API will return for captured
+    // sub-patterns.
+    // [0 = unlimited (default: 300)]
+    maxWhole: ConfigMax,
+    // The maximum number of characters returned with the response for
+    // a given sample
+    // [0 = unlimited (default: 0)]
+    maxReturnSampleLength?: ConfigMax
   }
 }
 

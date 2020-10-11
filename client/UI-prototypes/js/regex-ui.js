@@ -1,6 +1,7 @@
 import { html, render } from './lit-html.js';
 import { wholeRegexPair } from './components/regex-pair.module.js'
 import { wholeSample } from './components/regex-sample.module.js'
+import { resultSettings } from './components/regex-result-settings.module.js'
 
 // // Define a template
 // const myTemplate = (name) => html`<p>Hello ${name} chicken</p>`;
@@ -10,7 +11,7 @@ import { wholeSample } from './components/regex-sample.module.js'
 
 const data1 = {
   id: 1,
-  find: '(?<=// )((?<firstWord>[^\s]+)[^\r\n]+)(?=[\r\n]+)',
+  find: '(?<=// )((?<firstWord>[^\\s]+)[^\\r\\n]+)(?=[\\r\\n]+)',
   replace: '',
   modifiers: 'i',
   delim: {
@@ -65,6 +66,15 @@ const sample = {
   }`
 }
 
+const settings = {
+  truncateLong: {
+    sample: 300,
+    wholeMatch: 300,
+    partMatch: 200
+  },
+  showWhiteSpace: true
+}
+
 render(
   html`
     <section>
@@ -73,6 +83,7 @@ render(
     </section>
     ${wholeRegexPair(data1)}
     ${wholeRegexPair(data2)}
+    ${resultSettings(settings)}
 
   `,
   document.body

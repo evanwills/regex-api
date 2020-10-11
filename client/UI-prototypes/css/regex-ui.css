@@ -1,6 +1,7 @@
 body {
   box-sizing: border-box;
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 input, textarea {
   box-sizing: border-box;
@@ -11,11 +12,23 @@ textarea {
   white-space: pre-wrap;
 }
 
-.two-char-input {
+.low-chars {
   display: inline-block;
-  width: 2.4rem;
   text-align: center;
 }
+
+input[type="number"] {
+  padding: 0.3rem 0 0.3rem 0.5rem;
+  text-align: left;
+}
+
+.low-chars--2 { width: 2.4rem; }
+.low-chars--3 { width: 3rem; }
+.low-chars--4 { width: 3.6rem; }
+.low-chars--5 { width: 4.2rem; }
+.low-chars--6 { width: 4.8rem; }
+.low-chars--7 { width: 5.4rem; }
+.low-chars--8 { width: 6rem; }
 
 .setting-list {
   margin: 0;
@@ -32,4 +45,35 @@ textarea {
 .setting-list--hide {
   transform: scaleY(0);
   transition: transform ease-in-out 0.3s;
+}
+
+.wrapping-label {
+  display: block;
+  padding-left: 1.2rem;
+  position: relative;
+  text-indent: -1.2rem;
+}
+.wrapping-label::after {
+  border: 0.05rem dashed #ccc;
+  border-radius: 0.3rem;
+  bottom: -0.5rem;
+  box-shadow: 0 0 0.5rem rgba(175, 200, 255, 0.3),  0 0 0.25rem rgba(175, 200, 255, 0.3) inset;
+  content: '';
+  display: block;
+  left: -0.5rem;
+  opacity: 0;
+  position: absolute;
+  right: -.5rem;
+  top: -0.5rem;
+  transition: opacity 0.2s ease-in-out;
+  z-index: -1;
+}
+.wrapping-label:focus-within::after {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.wrapping-label input {
+  position: relative;
+  top: 0.1rem;
 }

@@ -1,5 +1,5 @@
 import { html } from '../lit-html.js'
-import { ucFirst, htmlEscape } from './regex-api--utils.module.js'
+import { ucFirst, htmlEscape, wholeChecboxInput } from './regex-api--utils.module.js'
 
 /**
  * Get a "Delete this pair" button template
@@ -36,29 +36,6 @@ const addPairBtn = (id, suffix) => {
     <button id=${_id} class=${_class}>
       Add pair ${_suffix}
     </button>
-  `
-}
-
-/**
- * Get a checkbox field wrapped in a label.
- *
- * @param {string,number} id ID of the regex pair
- * @param {boolean}       isChecked Whether or not the checkbox
- * @param {string}        suffix
- * @param {string}        label
- *
- * @returns {html} lit-html function
- */
-const wholeChecboxInput = (id, isChecked, suffix, label) => {
-  const _isChecked = (typeof isChecked === 'boolean' && isChecked === true)
-  const _id = `pair${id}-${suffix}`
-  const _class = `pair-${suffix} wrapping-label`
-
-  return html`
-    <label class=${_class}>
-      <input type="checkbox" value="true" id=${_id} ?checked=${_isChecked} />
-      ${label}
-    </label>
   `
 }
 
@@ -107,7 +84,7 @@ const singleLineInput = (id, value, subType, pattern) => {
     case 'close':
       place = ''
       name = subType + 'Delim'
-      classExtra = 'two-char-input '
+      classExtra = 'low-chars low-chars--2 '
   }
   const _id = 'pair' + id + '-' + name
   const _class = `${classExtra}pair-input pair-input--${name}`
@@ -152,7 +129,7 @@ const multiLineInput = (id, value, subType, pattern) => {
 /**
  * Render a whole Regex Pair block
  *
- * @param {uiRegex} data All the data for a single regex pair
+ * @param {UiRegex} data All the data for a single regex pair
  */
 export const wholeRegexPair = (data) => {
   const _id = data.id
@@ -185,13 +162,13 @@ export const wholeRegexPair = (data) => {
       <div class="pair-settings--wrap" role="group" aria-labeldby=${_settingsID}>
         <h2 id=${_settingsID}>Settings</h2>
         <div class="pair-settings" role="group" aria-labeldby="${_legendID}">
-          ${wholeChecboxInput(_id, data.transformWS, 'transformWS', 'Transform white space escape sequences in replace')}
+          ${wholeChecboxInput(_id, 'Transform white space escape sequences in replace', data.transformWS, 'pair', 'transformWS')}
           ${delim}
           <div class="pair-layout">
             <h3 id="pair${_id}-layout">Layout</h3>
             <ul class="setting-list" role="group" aria-labelledby="pair${_id}-layout">
-              <li class="setting-list__item">${wholeChecboxInput(_id, data.fullWidth, 'fullWidth', 'Full width')}</li>
-              <li class="setting-list__item">${wholeChecboxInput(_id, data.multiLine, 'multiLine', 'Multi-line')}</li>
+              <li class="setting-list__item">${wholeChecboxInput(_id, 'Full width', data.fullWidth, 'pair', 'fullWidth')}</li>
+              <li class="setting-list__item">${wholeChecboxInput(_id, 'Multi-line', data.multiLine, 'pair', 'multiLine')}</li>
             </ul>
           </div>
         </div>
@@ -202,3 +179,8 @@ export const wholeRegexPair = (data) => {
     </article>
   `
 }
+
+export const regexSettings = (data) => {
+
+}
+
