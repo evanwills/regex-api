@@ -1,10 +1,12 @@
 import {
   ID,
-  Delimiters,
-  RegexMatchReplace,
+  IDelimiters,
+  IRegexMatchReplace,
+  ResponseCapturedMatches,
   RegexError,
   EngineListingItem,
-  UserEngineDefaults
+  UserEngineDefaults,
+  EngineConfig
 } from './regex-api'
 
 import {
@@ -42,48 +44,85 @@ export interface PositiveIntData {
   value: number,
   max?: number
 }
-
-export interface Sample {
+export interface sampleSettings {
   splitSample: boolean,
   splitDelimiter: string,
   trimSample: boolean,
   trimBefore: boolean,
-  trimAfter: boolean,
-  samples: [string]
+  trimAfter: boolean
+}
+
+export interface Sample {
+  settings: sampleSettings,
+  samples: string[]
 }
 
 export interface TruncateLength {
   sample: number,
   wholeMatch: number,
-  partMatch: number
+  subPattern: number
+}
+
+export interface ResultSettings {
+  truncateLong: TruncateLength,
+  showWhiteSpace: boolean
+}
+
+export interface UImatchResponse {
+  // List of matches for a given regex & supplied strings
+  matches: [ResponseCapturedMatches],
+  // number of miliseconds the matching took the engine to execute
+  // (if available for that engine/platform)
+  duration: number
+}
+
+export interface UIResults {
+  settings: ResultSettings,
 }
 
 export interface Settings {
-  truncateLong: TruncateLength,
-  showWhiteSpace: boolean,
   availableEngines: [EngineListingItem],
   engineConfig: {
     engine: EngineConfig,
-    user: UserEngineDefaults
+    userOverrides: [UserEngineDefaults]
   }
 }
 
-export interface UiRegex extends RegexMatchReplace {
+export interface UiRegex extends IRegexMatchReplace {
   id: ID
   pattern: string,
   modifiers: string,
-  delimiters: Delimiters,
+  delimiters: IDelimiters,
   // Replacement string/pattern
   replace: string,
   // Whether or not to transform white space escape sequences into
   // their normal white space character equivalents
-  TransformWhiteSpace: boolean,
+  transformWhiteSpace: boolean,
   hasError: boolean,
   awaitingTest: boolean,
-  error?: RegexError,
+  error?: RegexError | null,
   fullWidth: boolean,
   multiLine: boolean
 }
 
+export interface UIregexes {
+  settings: UserEngineConfig,
+  chainRegexes: boolean,
+  regexes: UiRegex[]
+}
+
+export interface ClientUiState {
+  sample: Sample,
+  regexes: UIregexes,
+  results: UImatchResponse[],
+  output: string,
+  messages: string[],
+  engineDefaults: UserEngineConfig[]
+}
+
+export redux
+
 //  END:  Interfaces
 // ===============================================
+
+

@@ -1,0 +1,6 @@
+export enum RegexPairAction {
+  BEFORE = 'REGEX_INSERT_BEFORE',
+  AFTER = 'REGEX_INSERT_AFTER',
+  DELETE = 'REGEX_DELETE',
+  UPDATE = 'REGE_UPDATE'
+}

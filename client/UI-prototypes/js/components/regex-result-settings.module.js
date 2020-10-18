@@ -13,7 +13,6 @@ export const resultSettings = (settings) => {
 
         <li>${labeledInput('truncateSample', 'Maximum number of characters before captured sub-pattern is truncated (0 = unlimited)', positiveIntInput('truncateSample', settings.truncateLong.partMatch, 1000))}</li>
         <li>${wholeChecboxInput('showWhiteSpace', 'Show whitespace in matched patterns', settings.showWhiteSpace)}</li>
-        <li></li>
       </ul>
     </div>
   </div>`

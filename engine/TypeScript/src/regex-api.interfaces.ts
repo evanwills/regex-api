@@ -7,6 +7,7 @@ export enum ERequestType {
   replace,
   getConfig
 }
+
 export enum EResponseType {
   test,
   match,

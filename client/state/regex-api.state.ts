@@ -1,56 +1,67 @@
-const defaultState = {
+// import { IRegexMatchReplace } from "./regex-api"
+import { ClientUiState, UiRegex } from "./regex-api--ui"
+
+const defaultState : ClientUiState = {
   sample: {
-    splitSample: false,
-    splitDelimiter: '\n',
-    trimSample: true,
-    trimBefore: true,
-    trimAfter: false,
+    settings: {
+      splitSample: false,
+      splitDelimiter: '\n',
+      trimSample: true,
+      trimBefore: true,
+      trimAfter: false,
+    },
     samples: []
   },
-  regex: {
-    chainRegexes: true,
-    engine: {
-      allowedDelimiters: {
-        single: [],
-        paired: []
-      },
-      allowedModifiers: [],
-      engineName: 'ecmascript',
-      isLocal: true,
-      apiURL: '',
-      defaultDelimiters: {
+  regexes: {
+    settings: {
+      id: 'es',
+      label: 'Pure EcmaScript',
+      delimiter: {
         open: '',
         close: ''
       },
-      defaultModifiers: ''
+      modifiers: '',
+      sample: {
+        split: {
+          doSplit: false,
+          splitChar: ''
+        },
+        trim: {
+          before: false,
+          after: false,
+        }
+      },
+      showWhiteSpace: true,
+      truncateReturned: {
+        maxCaptured: 300,
+        maxWhole: 300,
+        maxReturnSampleLenght: 300
+      }
     },
+    chainRegexes: true,
     regexes: []
-  },
-  settings: {
-    truncateLong: {
-      sample: 300,
-      wholeMatche: 300,
-      subPattern: 300
-    },
-    showWhiteSpace: true
   },
   results: [],
   output: '',
-  messages: []
+  messages: [],
+  engineDefaults: []
 }
 
-const defaultRegex = {
+const defaultRegex : UiRegex  = {
   id: '',
-  find: '',
+  pattern: '',
   replace: '',
   modifiers: 'i',
   delimiters: {
     open: '`',
     close: '`'
   },
-  transformEscaped: true,
+  transformWhiteSpace: true,
+  awaitingTest: false,
   hasError: false,
-  error: {}
+  error: null,
+  fullWidth: false,
+  multiLine: false
 }
 
 const defaultRegexError = {

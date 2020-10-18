@@ -1,4 +1,4 @@
-# Regex API
+# IRegex API
 
 Regex API is an API speicification, a web based client, plus a few sample engine implementations.
 * Pure EcmaScript (TypeScript RegExp)

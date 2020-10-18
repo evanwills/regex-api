@@ -51,7 +51,7 @@ const sample = {
     // Whether or not the engine was able to fix the error
     autoRepair: boolean,
     // Which part of the regex does this error relate to
-    type: regexErrorType,
+    type: ERegexErrorType,
     // Message about the given erorr
     // (cleaned up for user export interface)
     message: string

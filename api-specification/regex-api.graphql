@@ -16,7 +16,7 @@ enum EResponseType {
   error
 }
 
-enum EregexErrorType {
+enum EERegexErrorType {
   delimiter,
   modifier,
   pattern
@@ -26,7 +26,7 @@ enum EregexErrorType {
 # ===============================================
 # START: Interfaces
 
-interface IapiResponse {
+interface IApiResponse {
   """Whether or not the request was OK or not"""
   ok: Boolean,
   """Code for response type success/error type"""
@@ -43,19 +43,19 @@ interface IapiResponse {
 # ===============================================
 # START: Types
 
-type Delimiters {
+type IDelimiters {
   open: String!,
   close: String!,
 }
 
-type Regex {
+type IRegex {
   id: ID!,
   """Regular expression pattern (without delimiters or modifiers"""
   pattern: String!,
   """Regular expression modifiers"""
   modifiers: String!,
   """Regular expression"""
-  delimiters: Delimiters
+  delimiters: IDelimiters
 }
 
 type ConfigMax {
@@ -63,18 +63,18 @@ type ConfigMax {
   default: Number!
 }
 
-type RegexMatchReplace implements Regex {
+type IRegexMatchReplace implements IRegex {
   id: ID!
   pattern: String!,
   modifiers: String!,
-  delimiters: Delimiters,
+  delimiters: IDelimiters,
   """Replacement string/pattern"""
   replace: String!,
   """Whether or not to transform white space escape sequences into their normal white space character equivalents"""
   TransformWhiteSpace: Boolean!
 }
 
-type MatchConfig {
+type IMatchConfig {
   """The maximum Number of characters a captured sub-pattern can be before it is truncated"""
   maxSubMatchLen: Number,
   """The maximum Number of characters the whole matched pattern can be before it is truncated"""
@@ -88,13 +88,13 @@ type MatchConfig {
 
 
 
-type APItestRequest {
+type IAPItestRequest {
   type: ErequestType!,
   """List of regexes to be tested for validity"""
   regexes: [Regex]!
 }
 
-type APIreplaceRequest implements APItestRequest {
+type IAPIreplaceRequest implements IAPItestRequest {
   type: ErequestType!,
   """List of regexes to apply to sample strings"""
   regexes: [regexMatchReplace]!,
@@ -102,14 +102,14 @@ type APIreplaceRequest implements APItestRequest {
   sampleStrings: [String]!
 }
 
-type APImatchRequest implements APIreplaceRequest {
+type IAPImatchRequest implements IAPIreplaceRequest {
   type: ErequestType!,
   regexes: [regexMatchReplace]!,
   sampleStrings: [String]!
   """Whether or not to apply find/replace sequentially on strings or to apply find/replace to fresh version of original string"""
   chainRegexes: Boolean!,
   """Control how much text is returned for each match"""
-  matchConfig: MatchConfig
+  matchConfig:$1IMatchConfig
 }
 
 
@@ -121,7 +121,7 @@ type APImatchRequest implements APIreplaceRequest {
 
 
 
-type ApiErrorResponse implements IapiResponse {
+type ApiErrorResponse implements IApiResponse {
   """Whether or not the request was OK or not"""
   ok: false,
   """Code for response type success/error type"""
@@ -138,7 +138,7 @@ type ApiErrorResponse implements IapiResponse {
   type: EResponseType
 }
 
-type ApiTestResponse implements IapiResponse {
+type ApiTestResponse implements IApiResponse {
   """Whether or not the request was OK or not"""
   ok: true,
   """Code for response type success/error type"""
@@ -155,7 +155,7 @@ type ApiTestResponse implements IapiResponse {
   type: EResponseType
 }
 
-type ApiMatchResponse implements IapiResponse {
+type ApiMatchResponse implements IApiResponse {
   ok: true,
   code: Number,
   content: [MatchResponse],
@@ -171,7 +171,7 @@ type ApiMatchResponse implements IapiResponse {
   type: EResponseType
 }
 
-type ApiReplaceResponse implements IapiResponse {
+type ApiReplaceResponse implements IApiResponse {
   ok: true,
   code: Number,
   content: [ReplaceResponse],
@@ -187,7 +187,7 @@ type ApiReplaceResponse implements IapiResponse {
   type: EResponseType
 }
 
-type ApiConfigResponse implements IapiResponse {
+type ApiConfigResponse implements IApiResponse {
   ok: true,
   code: Number,
   content: UIconfig,
@@ -217,7 +217,7 @@ type RegexError {
   """Whether or not the engine was able to fix the error"""
   autoRepair: Boolean!,
   """Which part of the regex does this error relate to"""
-  type: EregexErrorType!,
+  type: EERegexErrorType!,
   """Message about the given error (cleaned up for user interface)"""
   message: String!
   """
@@ -286,8 +286,8 @@ type UIconfig {
     """
     delimiters: {
       single: [String]!,
-      paired: [Delimiters]!,
-      default: Delimiters!
+      paired: [IDelimiters]!,
+      default: IDelimiters!
     }!,
 
     """

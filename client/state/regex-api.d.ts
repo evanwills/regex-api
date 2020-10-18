@@ -1,14 +1,21 @@
-
 // ===============================================
 // START: Enums
 
-export enum requestMode {
+export enum ERequestType {
   test,
   match,
   replace
 }
 
-export enum regexErrorType {
+export enum EResponseType {
+  test,
+  match,
+  replace,
+  config,
+  error
+}
+
+export enum ERegexErrorType {
   delimiter,
   modifier,
   pattern
@@ -24,7 +31,7 @@ export type ID = string;
 // ===============================================
 // START: Interfaces
 
-export interface IapiResponse {
+export interface IApiResponse {
   // Whether or not the request was OK or not
   ok: boolean,
   // Code for response export interface success/error export interface
@@ -32,41 +39,43 @@ export interface IapiResponse {
   // List of results for test of each supplied regex
   content?: [TestResponse | MatchResponse | ReplaceResponse] | EngineConfig,
   // Human readable description of success/error export interface
-  message: string
+  message: string,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
 //  END:  Interfaces
 // ===============================================
 // START: Types
 
-export interface Delimiters {
+export interface IDelimiters {
   open: string,
   close: string,
 }
 
-export interface Regex {
+export interface IRegex {
   id: ID,
   // Regular expression pattern (without delimiters or modifiers
   pattern: string,
   // Regular expression modifiers
   modifiers: string,
   // Regular expression
-  delimiters: Delimiters
+  delimiters: IDelimiters
 }
 
-export interface RegexMatchReplace extends Regex {
+export interface IRegexMatchReplace extends IRegex {
   id: ID
   pattern: string,
   modifiers: string,
-  delimiters: Delimiters,
+  delimiters: IDelimiters,
   // Replacement string/pattern
   replace: string,
   // Whether or not to transform white space escape sequences into
   // their normal white space character equivalents
-  TransformWhiteSpace: boolean
+  transformWhiteSpace: boolean
 }
 
-export interface MatchConfig {
+export interface IMatchConfig {
   // The maximum number of characters a captured sub-pattern can be
   // before it is truncated
   maxSubMatchLen: number,
@@ -82,23 +91,23 @@ export interface MatchConfig {
 
 
 
-export interface APItestRequest {
-  type: requestMode,
+export interface IAPItestRequest {
+  type: ERequestType,
   // List of regexes to be tested for validity
   regexes: [Regex]
 }
 
-export interface APIreplaceRequest extends APItestRequest {
-  type: requestMode,
+export interface IAPIreplaceRequest extends IAPItestRequest {
+  type: ERequestType,
   // List of regexes to apply to sample strings
-  regexes: [RegexMatchReplace],
+  regexes: [IRegexMatchReplace],
   // List of sample strings to which regexes are to be applied
   samplestrings: [string]
 }
 
-export interface APImatchRequest extends APIreplaceRequest {
-  type: requestMode,
-  regexes: [RegexMatchReplace],
+export interface IAPImatchRequest extends IAPIreplaceRequest {
+  type: ERequestType,
+  regexes: [IRegexMatchReplace],
   samplestrings: [string],
   // Whether or not to apply find/replace sequentially on strings or
   // to apply find/replace to fresh version of original string
@@ -116,7 +125,7 @@ export interface APImatchRequest extends APIreplaceRequest {
 
 
 
-export interface APIinvalidRequestResponse extends IapiResponse {
+export interface IAPIinvalidRequestResponse extends IApiResponse {
   // Whether or not the request was OK or not
   ok: false,
   // Code for response export interface success/error export interface
@@ -124,10 +133,12 @@ export interface APIinvalidRequestResponse extends IapiResponse {
   // Error message
   // content: [],
   // Human readable description of success/error export interface
-  message: string
+  message: string,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
-export interface APIconfigResponse extends IapiResponse {
+export interface IAPIconfigResponse extends IApiResponse {
   // Whether or not the request was OK or not
   ok: true,
   // Code for response export interface success/error export interface
@@ -135,10 +146,12 @@ export interface APIconfigResponse extends IapiResponse {
   // Engine config parameters
   content: EngineConfig,
   // Human readable description of success/error export interface
-  message: string
+  message: string,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
-export interface APItestResponse extends IapiResponse {
+export interface IAPItestResponse extends IApiResponse {
   // Whether or not the request was OK or not
   ok: true,
   // Code for response export interface success/error export interface
@@ -146,27 +159,33 @@ export interface APItestResponse extends IapiResponse {
   // List of results for test of each supplied regex
   content: [TestResponse],
   // Human readable description of success/error export interface
-  message: string
+  message: string,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
-export interface APImatchResponse extends IapiResponse {
+export interface IAPImatchResponse extends IApiResponse {
   ok: true,
   code: number,
   content: [MatchResponse],
   message: string,
   // Whether or not contents objects include timings for processing
   // of regexes
-  hasTiming: boolean
+  hasTiming: boolean,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
-export interface APIreplaceResponse extends IapiResponse {
+export interface IAPIreplaceResponse extends IApiResponse {
   ok: true,
   code: number,
   content: [ReplaceResponse],
   message: string,
   // Whether or not contents objects include timings for processing
   // of regexes
-  hasTiming: boolean
+  hasTiming: boolean,
+  // Type of content contained in the "content" property
+  type: EResponseType
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - -
@@ -186,7 +205,7 @@ export interface RegexError {
   // Whether or not the engine was able to fix the error
   autoRepair: boolean,
   // Which part of the regex does this error relate to
-  type: regexErrorType,
+  type: ERegexErrorType,
   // Message about the given erorr
   // (cleaned up for user export interface)
   message: string
@@ -198,6 +217,17 @@ export interface RegexError {
   offset: number,
   // Raw error message generated by regex engine
   rawMessage: string,
+}
+
+export const isRegexError = (object : object) : object is RegexError => {
+  return (
+    ((object as RegexError).autoRepair !== 'undefined' &&
+    (object as RegexError).badCharacter !== 'undefined' &&
+    (object as RegexError).offset !== 'undefined' &&
+    (object as RegexError).rawMessage !== 'undefined') ||
+    object === null
+  );
+
 }
 
 export interface ResponseRegex {
@@ -283,8 +313,8 @@ export interface EngineConfig implements BaseEngineConfig {
     single: [string],
     // Paired: Different "paired" characters are used for opening and
     // closing e.g. "{" & "}"
-    paired: [Delimiters]
-    default: Delimiters
+    paired: [IDelimiters]
+    default: IDelimiters
   },
   // The modifiers allowed by the server/API
   modifiers: {
@@ -334,10 +364,14 @@ export interface EngineConfig implements BaseEngineConfig {
     // API will allow.
     // [0 = unlimited (default: 0)]
     maxSampleLength?: number,
-    // The absolute total maximum characters the whole request JSON object
-    // can be before it's rejected by the API
+    // The absolute total maximum characters the whole request JSON
+    // object can be before it's rejected by the API
     // [0 = unlimited (default: 0)]
     maxTotalRequestLength?: number,
+    // The absolute total maximum characters the server will return
+    // before saying no more.
+    // [0 = unlimited (default: 0)]
+    maxTotalReturnLenght?: number
   }
 }
 
@@ -357,7 +391,7 @@ export interface UserEngineConfig implements BaseEngineConfig {
   //      engine and that system uses "%" and "{}" as delimiters in it's
   //      templating, then those characters could be omitted from the
   //      allowed delimters.
-  delimiters: Delimiters,
+  delimiters: IDelimiters,
   // The modifiers allowed by the server/API
   modifiers: string,
   sample: {

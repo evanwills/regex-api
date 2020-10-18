@@ -142,7 +142,7 @@ export const wholeRegexPair = (data) => {
   const delim = (data.delim.required === true)
     ? html`
     <div class="pair-delimiters">
-      <h3 id="pair${_id}-delimiters-label">Delimiters</h3>
+      <h3 id="pair${_id}-delimiters-label">IDelimiters</h3>
       <ul class="setting-list" role="group" aria-labeledby="pair${_id}-delimiters-label">
         <li class="setting-list__item">${singleLineInput(_id, data.delim.open, 'open', '^[^\\w\\d]$')}</li>
         <li class="setting-list__item">${singleLineInput(_id, data.delim.close, 'close', '^[^\\w\\d]$')}</li>

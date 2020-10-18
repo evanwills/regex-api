@@ -1,4 +1,4 @@
-# Regex API Specification
+# IRegex API Specification
 
 Regex API is intended for use in systems that allow admin users to 
 use regular expression for either validation of form inputs or for 
@@ -54,8 +54,8 @@ the error object for that regex
 ## Multiple regexes
 
 There are many times when using a single large all purpose regex on 
-a string is more error prone than using multiple single purpose 
-regexes. Regex API assumes that when it is supplied with multiple 
+a string is more error prone than using multiple, small, single purpose 
+regexes. IRegex API assumes that when it is supplied with multiple 
 regexes, the regexes are to be run in series ("Chained").
 
 It is also understood that there are good reasons why "chaining" 
@@ -70,3 +70,9 @@ __NOTE:___ If the chaining property isn't supplied with a request,
 Match results must be returned grouped by sample (when multiple 
 samples are supplied). Then grouped by regexes (when multiple regexes 
 are supplied)
+
+
+## Handling abusive requests
+
+As soon as an engine encounters a request that breaches any one of 
+it's advertised limits it should stop processing and return an error.
