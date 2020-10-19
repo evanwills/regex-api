@@ -11,7 +11,7 @@ import {
 
 import {
   TemplateResult
-} from 'node_modules\lit-html\ts3.4\lib\template-result.d.ts'
+} from 'node_modules/lit-html/ts3.4/lib/template-result.d.ts'
 
 // ===============================================
 // START: Enums
@@ -120,7 +120,17 @@ export interface ClientUiState {
   engineDefaults: UserEngineConfig[]
 }
 
-export redux
+// -----------------------------------------------
+// START: Redux
+
+export interface ReduxAction {
+  type: enum,
+  subType?: enum,
+  payload: any
+}
+
+//  END:  Redux
+// -----------------------------------------------
 
 //  END:  Interfaces
 // ===============================================

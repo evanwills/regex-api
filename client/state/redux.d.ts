@@ -1,4 +1,20 @@
 
+
+export enum RegexPairUploadFields {
+  id,
+  pattern,
+  replace,
+  modifiers,
+  open,
+  close,
+  transformWhiteSpace,
+  hasError,
+  error,
+  fullWidth,
+  multiLine,
+  awaitingTest
+}
+
 export interface PairAndIndex {
   pair: UiRegex,
   index: number,
@@ -7,7 +23,7 @@ export interface PairAndIndex {
 }
 
 export interface PairUpdatePayload {
-  field: string,
+  field: RegexPairUploadFields,
   value: string | boolean,
   error: string
 }

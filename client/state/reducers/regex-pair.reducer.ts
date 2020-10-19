@@ -1,7 +1,16 @@
 import { Reducer } from 'redux'
 import { isRegexError } from '../regex-api';
 import { UiRegex } from '../regex-api--ui';
-import { PairAndIndex, PairUpdatePayload } from '../redux'
+import { PairAndIndex, PairUpdatePayload, RegexPairUploadFields } from '../redux'
+import { AnyAction } from 'redux'
+
+enum RegexPairAction {
+  BEFORE = 'REGEX_INSERT_BEFORE',
+  AFTER = 'REGEX_INSERT_AFTER',
+  DELETE = 'REGEX_DELETE',
+  UPDATE = 'REGE_UPDATE'
+}
+
 
 const defaultRegex : UiRegex  = {
   id: '',
@@ -53,7 +62,7 @@ const getPairAndInd = (state : UiRegex[], id: string, before: boolean) : PairAnd
  * @param state Full list of regex pairs
  * @param id    ID of regex new pair is to be insert relative to
  */
-const insertNow = (state : UiRegex[], id: string, before: boolean) => {
+const insertPair = (state : UiRegex[], id: string, before: boolean) => {
   const source : PairAndIndex | null = getPairAndInd(state, id, before);
 
   if (source === null) {
@@ -121,25 +130,27 @@ const updatePair = (pair : UiRegex, payload: PairUpdatePayload) => {
       break;
     case 'object':
       if (payload.field === 'error' && isRegexError(payload.value)) {
-          newPair.error = payload.value
-        }
+        newPair.error = payload.value
+      } else {
+        newPair[payload.field] = payload.value
+      }
   }
 
   return newPair
 }
 
-export const regexPairs : Reducer = (state : UiRegex[] = [defaultRegex] , action) : UiRegex[] => {
+export const regexPairsReducer : Reducer = (state : UiRegex[] = [defaultRegex] , action) : UiRegex[] => {
   switch(action.type) {
-    case 'REGEX_INSERT_BEFORE':
-      return insertNow(state, action.payload, true);
+    case RegexPairAction.BEFORE:
+      return insertPair(state, action.payload, true);
 
-    case 'REGEX_INSERT_AFTER':
-      return insertNow(state, action.payload, false);
+    case RegexPairAction.AFTER:
+      return insertPair(state, action.payload, false);
 
-    case 'REGEX_DELETE':
+    case RegexPairAction.DELETE:
       return state.filter(pair => pair.id !== action.payload.id)
 
-    case 'REGEX_UPDATE':
+    case RegexPairAction.UPDATE:
       return state.map((pair : UiRegex) : UiRegex => {
         if (pair.id === action.payload.id) {
           return updatePair(pair, action.payload)
@@ -150,5 +161,43 @@ export const regexPairs : Reducer = (state : UiRegex[] = [defaultRegex] , action
 
     default:
       return state
+  }
+}
+
+
+export const regexPairsActionCreator = (type: string, id: string) : function | null => {
+  let _type = ''
+  switch (type) {
+    case 'before':
+      _type = RegexPairAction.BEFORE
+      break;
+    case 'after':
+      _type = RegexPairAction.AFTER
+      break;
+    case 'delete':
+      _type = RegexPairAction.DELETE
+      break;
+    default:
+      return null
+  }
+  return (fieldName: string, value: string|boolean|undefined) : AnyAction => {
+    return {
+      type: _type,
+      payload: id
+    }
+  }
+}
+
+
+export const regexPairsUpdateActionCreator = (id: string, fieldName: RegexPairUploadFields) => {
+  return (value: string|boolean|undefined) : AnyAction => {
+    return {
+      type: RegexPairAction.UPDATE,
+      payload: {
+        id: id,
+        field: fieldName,
+        value: value
+      }
+    }
   }
 }
