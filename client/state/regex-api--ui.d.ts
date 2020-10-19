@@ -113,7 +113,7 @@ export interface UIregexes {
 
 export interface ClientUiState {
   sample: Sample,
-  regexes: UIregexes,
+  regex: UIregexes,
   results: UImatchResponse[],
   output: string,
   messages: string[],

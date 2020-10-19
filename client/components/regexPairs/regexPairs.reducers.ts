@@ -171,7 +171,7 @@ const movePair = (pairs: UiRegex[], id: string, up : boolean) : UiRegex[] => {
   }
 }
 
-export const regexPairsReducer : Reducer = (state : UiRegex[] = [defaultRegex] , action: PairAction) : UiRegex[] => {
+export const regexPairsR = (state : UiRegex[] = [defaultRegex] , action: PairAction) : UiRegex[] => {
   switch(action.type) {
     case PairActionType.INSERT_BEFORE:
       if (isPairInsert(action.payload)) {

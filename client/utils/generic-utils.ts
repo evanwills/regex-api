@@ -112,5 +112,9 @@ export const timeAsID = () : string => {
   let now : number = Date.now();
   let nowS : string = now.toString();
 
-  return nowS.replace(/^[0-9]+?([0-9]{8})$/, '$1');
+  return nowS.replace(/^[0-9]+?([0-9]{7})[0-9]$/, '$1');
+}
+
+const getID = (input : string) : string => {
+  return input.substr(0, 7)
 }
